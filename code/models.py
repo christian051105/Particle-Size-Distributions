@@ -78,7 +78,7 @@ def bi_rr_density(phi, w, sigma1, k1, sigma2, k2, amp):
 
 
 # ---------------------------------------------------------------------
-# Bi-Rosin-Rammler (used by RR_clicker)
+# Entropy of information
 # ---------------------------------------------------------------------
 
 def entropy_of_info(mass_frac):
