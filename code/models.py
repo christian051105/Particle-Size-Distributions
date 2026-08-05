@@ -23,6 +23,19 @@ def bi_gaussian(phi, mu1, sigma1, mu2, sigma2, p):
     g2 = np.exp(-0.5 * ((phi - mu2) / sigma2) ** 2) / (sigma2 * np.sqrt(2 * np.pi))
     return p * g1 + (1.0 - p) * g2
 
+def bimodality_B(mu1, mu2, sigma1, sigma2, p):
+    """
+    Bimodality index B (Bonadonna/Costa-style), computed from a fitted
+    bi-Gaussian's parameters. Places the population with the larger
+    peak amplitude first regardless of the fit's mu1/mu2 ordering.
+    """
+    amp1 = p / (sigma1 * np.sqrt(2 * np.pi))
+    amp2 = (1 - p) / (sigma2 * np.sqrt(2 * np.pi))
+    if amp1 >= amp2:
+        P1, P2 = p, 1 - p
+    else:
+        P1, P2 = 1 - p, p
+    return abs(mu2 - mu1) * (P2 / P1)
 
 # ---------------------------------------------------------------------
 # Bi-Weibull (used by BW_clicker)
