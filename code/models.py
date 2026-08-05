@@ -74,3 +74,22 @@ def bi_rr_density(phi, w, sigma1, k1, sigma2, k2, amp):
     """Two-component Rosin-Rammler mixture in phi space."""
     return amp * (w * rr_density_phi(phi, sigma1, k1) +
                   (1 - w) * rr_density_phi(phi, sigma2, k2))
+
+
+
+# ---------------------------------------------------------------------
+# Bi-Rosin-Rammler (used by RR_clicker)
+# ---------------------------------------------------------------------
+
+def entropy_of_info(mass_frac):
+    """
+    Compute Shannon information entropy of a TGSD mass-fraction distribution.
+    """
+    mass_frac = np.asarray(mass_frac, dtype=float)
+    n_bins_total = len(mass_frac)
+
+    p = mass_frac[mass_frac > 0]
+    entropy = -np.sum(p * np.log2(p))
+    entropy_norm = entropy / np.log2(n_bins_total)
+
+    return entropy, entropy_norm
