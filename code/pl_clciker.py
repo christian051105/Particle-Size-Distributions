@@ -244,7 +244,21 @@ def main():
     H, H_norm = entropy_of_info(mass_frac, bin_width=phi_bin_width)
     print(f"Shannon entropy: {H:.3f} bits (normalized: {H_norm:.3f})")
 
-
-
+    # ---------------------------------------------------------------
+    # Save this fit to the shared results store
+    # ---------------------------------------------------------------
+    save_fit_result(
+        dataset=DATASET_LABEL,
+        model="bi_power_law",
+        params={
+            "lambda_f": lambda_f, "lambda_c": lambda_c,
+            "Df": Df, "Dc": Dc,
+        },
+        rmse=None,
+        entropy_bits=H,
+        entropy_norm=H_norm,
+        phi_bin_width=phi_bin_width,
+    )
+  
 if __name__ == "__main__":
     main()
