@@ -193,6 +193,22 @@ def main():
     H, H_norm = entropy_of_info(mass_frac, bin_width=phi_bin_width)
     print(f"\nShannon entropy: {H:.3f} bits (normalized: {H_norm:.3f})")
 
-
+    
+    # ---------------------------------------------------------------
+    # Save this fit to the shared results store
+    # ---------------------------------------------------------------
+    save_fit_result(
+        dataset=DATASET_LABEL,
+        model="bi_gaussian",
+        params={
+            "mu1": mu1_g, "sigma1": sig1_g,
+            "mu2": mu2_g, "sigma2": sig2_g,
+            "p": p_g, "BI": BI,
+        },
+        rmse=rmse_g,
+        entropy_bits=H,
+        entropy_norm=H_norm,
+        phi_bin_width=phi_bin_width,
+    )
 if __name__ == "__main__":
     main()
