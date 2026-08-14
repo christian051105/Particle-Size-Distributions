@@ -104,12 +104,6 @@ def _try_native_file_dialog():
 def pick_csv_path(pattern="*.csv"):
     """
     Let the user choose a CSV from anywhere on their computer.
-
-    Tries a native "Open File" dialog first. If that's not usable in this environment, falls
-    back to a typed-path prompt, and also lists any CSVs already in
-    the current folder as a numbered shortcut.
-
-    Returns the chosen path as a string.
     """
     native_path = _try_native_file_dialog()
     if native_path:
@@ -220,28 +214,16 @@ def pick_column_mapping(df, need_size=True, need_weight=True):
 def pick_conventions():
     """
     Ask the user, via terminal prompts, to confirm the conventions
-    their data follows:
-      1. Are phi values bin centers already, or bin edges that need a
-         +/-0.5 shift to become centers?
-      2. What unit is the size column in (if provided)?
+    their data follows: what unit the size column is in (if provided).
 
-    Returns a dict: {"phi_convention": float shift, "size_unit": str}.
+    Phi values are always assumed to already be bin centres.
     """
-    phi_shift = _prompt_choice(
-        "Phi convention:",
-        [
-            ("Phi values are already bin centers (no shift)", 0.0),
-            ("Phi values are bin edges; shift by -0.5 to center", -0.5),
-            ("Phi values are bin edges; shift by +0.5 to center", 0.5),
-        ],
-        default_index=0,
-    )
     size_unit = _prompt_choice(
         "Size column unit:",
         [("mm", "mm"), ("µm", "µm"), ("already in phi units", "already in phi units")],
         default_index=0,
     )
-    return {"phi_convention": phi_shift, "size_unit": size_unit}
+    return {"size_unit": size_unit}
 
 
 # ---------------------------------------------------------------------
@@ -254,9 +236,7 @@ def build_arrays(df, mapping, conventions=None, weight_is_pct=True):
     """
     phi_col = mapping["phi"]
     phi_raw = pd.to_numeric(df[phi_col], errors="coerce").to_numpy(dtype=float)
-
-    shift = conventions["phi_convention"] if conventions is not None else 0.0
-    phi = phi_raw + shift
+    phi = phi_raw - 0.5
 
     size_mm = None
     if mapping.get("size") is not None:
@@ -303,4 +283,73 @@ def build_arrays(df, mapping, conventions=None, weight_is_pct=True):
     else:
         print("No valid rows found -- check your column mapping.")
 
-    return {"phi": phi, "size_mm": size_mm, "weight_pct": weight_pct}
+    phi_bin_width = detect_phi_bin_width(phi)
+
+    return {
+        "phi": phi, "size_mm": size_mm, "weight_pct": weight_pct,
+        "phi_bin_width": phi_bin_width,
+    }
+
+
+def detect_phi_bin_width(phi):
+    """
+    Auto-detect the phi sampling interval from the data itself (e.g.
+    1.0 for whole-phi steps, 0.5 for half-phi steps), using the median
+    gap between consecutive sorted phi values.
+    """
+    phi = np.asarray(phi, dtype=float)
+    phi = np.sort(phi[~np.isnan(phi)])
+    if len(phi) < 2:
+        return None
+    gaps = np.diff(phi)
+    gaps = gaps[gaps > 1e-9]  # drop exact duplicates
+    if len(gaps) == 0:
+        return None
+    return float(np.median(gaps))
+
+
+def confirm_phi_bin_width(detected_width):
+    """
+    Show the auto-detected phi bin width and let the user confirm or
+    override it via a terminal prompt. 
+    """
+    if detected_width is None:
+        print("\nCould not auto-detect the phi sampling interval "
+              "(not enough points).")
+        default = 1.0
+    else:
+        # snap to the nearest common interval for a friendlier default
+        common_widths = [0.25, 0.5, 1.0, 2.0]
+        default = min(common_widths, key=lambda w: abs(w - detected_width))
+        print(f"\nDetected phi sampling interval: ~{detected_width:.3f} "
+              f"(closest common value: {default})")
+
+    options = [
+        (f"{w} phi" + (" (detected)" if detected_width is not None
+                        and abs(w - default) < 1e-9 else ""), w)
+        for w in [0.25, 0.5, 1.0, 2.0]
+    ] + [("Other (type a custom value)", None)]
+
+    default_index = next(
+        (i for i, (_, w) in enumerate(options) if w == default), 0
+    )
+    chosen = _prompt_choice(
+        "Confirm the phi bin width for this dataset "
+        "(needed so entropy is comparable across datasets):",
+        options, default_index=default_index,
+    )
+
+    if chosen is None:
+        while True:
+            raw = input("Enter the phi bin width as a number "
+                         "(e.g. 0.5): ").strip()
+            try:
+                chosen = float(raw)
+                if chosen > 0:
+                    break
+            except ValueError:
+                pass
+            print("  Please enter a positive number.")
+
+    print(f"Using phi bin width = {chosen}")
+    return chosen
