@@ -49,7 +49,8 @@ class DatasetLoader:
 
     # -- Step 2 ------------------------------------------------------------
     def confirm_header(self, n_preview_rows=15, default=0):
-        """Preview the raw file and let the user confirm the header row."""
+        """Preview the raw file and let the user confirm the header row.
+        (Phi values are always treated as bin centers -- no shift is asked.)"""
         if not self.path:
             raise RuntimeError(
                 "No file selected yet -- call pick_file() before this."
