@@ -94,15 +94,23 @@ def bi_rr_density(phi, w, sigma1, k1, sigma2, k2, amp):
 # Entropy of information
 # ---------------------------------------------------------------------
 
-def entropy_of_info(mass_frac):
+# ---------------------------------------------------------------------
+# Entropy of information
+# ---------------------------------------------------------------------
+def entropy_of_info(mass_frac, bin_width=1.0):
     """
-    Compute Shannon information entropy of a TGSD mass-fraction distribution.
+    Compute Shannon information entropy of a TGSD mass-fraction
+    distribution.
+
+    bin_width : float, optional
+        The phi interval each entry in mass_frac represents (e.g. 1.0
+        for whole-phi data, 0.5 for half-phi data). Defaults to 1.0,
+        i.e. no correction, for backward compatibility.
     """
     mass_frac = np.asarray(mass_frac, dtype=float)
     n_bins_total = len(mass_frac)
-
     p = mass_frac[mass_frac > 0]
     entropy = -np.sum(p * np.log2(p))
     entropy_norm = entropy / np.log2(n_bins_total)
-
+    entropy = entropy + np.log2(bin_width)
     return entropy, entropy_norm
