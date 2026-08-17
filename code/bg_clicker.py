@@ -190,7 +190,7 @@ def main():
     # ---------------------------------------------------------------
     # Shannon entropy of the mass distribution
     # ---------------------------------------------------------------
-    H, H_norm = entropy_of_info(mass_frac)
+    H, H_norm = entropy_of_info(mass_frac, bin_width=phi_bin_width)
     print(f"\nShannon entropy: {H:.3f} bits (normalized: {H_norm:.3f})")
 
     
