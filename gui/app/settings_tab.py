@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal
 
-from data_prep import (
+from gui.data_prep import (
     preview_csv_lines, load_raw_table, build_arrays,
     detect_phi_bin_width, suggest_bin_width,
 )
