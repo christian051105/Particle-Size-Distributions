@@ -24,9 +24,6 @@ which columns are phi / size / weight) and choose which model(s) to fit.</li>
 <li>Click each mode's peak on the plot to give the fit a starting guess,
 then review the fitted curve and save the results.</li>
 </ol>
-<p>Your CSV should contain at minimum a &#934; (phi) column and a
-weight/mass column. A physical size column (mm or &micro;m) is only
-needed for the bi-power-law model.</p>
 """
 
 
