@@ -22,7 +22,7 @@ from gui.data_prep import (
     preview_csv_lines, load_raw_table, build_arrays,
     detect_phi_bin_width, suggest_bin_width,
 )
-from results_store import RESULTS_PATH
+from gui.results_store import RESULTS_PATH
 
 MODEL_CHOICES = [
     ("Bi-Gaussian", "bi_gaussian"),
