@@ -7,7 +7,7 @@ Entry point. Run with:  python3 main.py
 import sys
 from PyQt6.QtWidgets import QApplication
 
-from gui.main_window import MainWindow
+from gui.app.main_window import MainWindow
 
 
 def main():
