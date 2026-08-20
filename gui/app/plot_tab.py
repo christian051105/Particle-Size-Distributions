@@ -58,8 +58,8 @@ from PyQt6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from models import entropy_of_info, add_mm_twin_axis
-from results_store import save_fit_result
+from gui.models import entropy_of_info, add_mm_twin_axis
+from gui.results_store import save_fit_result
 from gui.fit_worker import FitWorker, MODEL_LABELS
 
 CDATA = '#c0392b'
