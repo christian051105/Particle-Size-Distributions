@@ -1,7 +1,7 @@
 """
 RUN_HERE.py
 =======
-Entry point. Run with:  python3 main.py
+Entry point. Run with:  python3 RUN_HERE.py
 """
 
 import sys
