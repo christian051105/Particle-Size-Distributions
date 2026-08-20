@@ -60,7 +60,7 @@ from matplotlib.figure import Figure
 
 from gui.models import entropy_of_info, add_mm_twin_axis
 from gui.results_store import save_fit_result
-from gui.fit_worker import FitWorker, MODEL_LABELS
+from gui.app.fit_worker import FitWorker, MODEL_LABELS
 
 CDATA = '#c0392b'
 FIT_COLORS = {
