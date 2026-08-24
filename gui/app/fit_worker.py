@@ -274,7 +274,8 @@ def _fit_bi_rr(arrays, clicks):
         "y_pop2": y_pop2,
         "total_label": f"Bi-Rosin-Rammler fit (R\u00b2={r2:.3f})",
         "pop1_label": f"Coarse mode $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
-        "pop2_label": f"Fine mode $\\lambda_1$={lambda2_fit:.3f} mm, $n_1$={n2_fit:.3f}",
+        "pop2_label": f"Fine mode $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
+        "cum_label": f"$\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}, $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
         "summary_text": summary,
         "rr_cumulative": rr_cumulative,
     }

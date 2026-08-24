@@ -597,7 +597,7 @@ class PlotTab(QWidget):
             ax.semilogx(cum["diam_mm_data"], cum["M_gt_l_data"], 'o', color='k',
                         markersize=5, label='Data (empirical)', zorder=5)
             ax.semilogx(cum["diam_mm_fit"], cum["M_gt_l_fit"], '-', color='crimson',
-                        lw=2, label='Bi-Rosin-Rammler (fitted density)')
+                        lw=2, label=f'Bi-Rosin-Rammler (fitted density) \n' + result["cum_label"])
             ax.invert_xaxis()
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
