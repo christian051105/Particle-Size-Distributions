@@ -14,7 +14,7 @@ Replaces plt.ginput()'s blocking behaviour with a mpl
 TWO INDEPENDENT CLICK PHASES, run in order when both apply:
   Phase "density": click 2 peaks (coarse mode, then fine mode -- order
     doesn't matter) on the combined overlay page. Fits every selected
-    density model (Bi-Gaussian, Bi-Weibull, Bi-Rosin-Rammler) from
+    density model (Bi-Gaussian, Bi-Length Biased Weibull, Bi-Rosin-Rammler) from
     that SAME pair of clicks.
   Phase "power_law": click 2 crossover-ish points on the power-law
     page itself. Fits Bi-power-law from its OWN pair of clicks --
@@ -65,12 +65,12 @@ from gui.app.fit_worker import FitWorker, MODEL_LABELS
 CDATA = '#c0392b'
 FIT_COLORS = {
     "bi_gaussian": '#2c3e50',
-    "bi_weibull": '#8e44ad',
+    "bi_lb_weibull": '#8e44ad',
     "bi_rr": '#16a085',
 }
 POP_COLOR_PAIRS = {
     "bi_gaussian": ('#2980b9', '#27ae60'),
-    "bi_weibull": ('#2980b9', '#27ae60'),
+    "bi_lb_weibull": ('#2980b9', '#27ae60'),
     "bi_rr": ('#2980b9', '#27ae60'),
 }
 N_CLICKS_REQUIRED = 2
@@ -538,13 +538,19 @@ class PlotTab(QWidget):
             params = result.get("params", {})
             lambda_f = params.get("lambda_f")
             lambda_c = params.get("lambda_c")
+            D_f = params.get("Df")
+            D_c = params.get("Dc")
+           
             if lambda_f is not None:
                 ax.axvline(lambda_f, color='#2980b9', lw=1.3, ls='--',
                            zorder=3, label=f'\u03bb$_f$ (fine crossover) = {lambda_f:.2f} \u03a6')
             if lambda_c is not None:
                 ax.axvline(lambda_c, color='#27ae60', lw=1.3, ls='--',
                            zorder=3, label=f'\u03bb$_c$ (coarse crossover) = {lambda_c:.2f} \u03a6')
-
+            if D_f and D_c is not None:
+                D_str = f"$D_f$ = {D_f:.3f}, $D_c$={D_c:.3f}"
+                dummy_plot = ax.plot([],[],' ',label=D_str)        
+                
             ax.legend(fontsize=7, loc='lower left', framealpha=0.85)
         else:
             # Plot the raw cumulative-number data even before any fit

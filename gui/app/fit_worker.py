@@ -86,8 +86,8 @@ def _fit_bi_gaussian(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": "Bi-Gaussian fit",
-        "pop1_label": f"Pop. 1  \u03bc\u2081 = {mu1:.2f} \u03a6",
-        "pop2_label": f"Pop. 2  \u03bc\u2082 = {mu2:.2f} \u03a6",
+        "pop1_label": f"Pop. 1  $\\mu_1$ = {mu1:.2f} $\\phi$, $\\sigma_1$ = {sig1:.3f}",
+        "pop2_label": f"Pop. 2  $\\mu_2$ = {mu2:.2f} $\\phi$, $\\sigma_2$ = {sig2:.3f}",
         "summary_text": summary,
     }
 
@@ -134,7 +134,7 @@ def _fit_bi_weibull(arrays, clicks):
     y_pop2 = (1 - q) * weibull_component(phi_smooth, lam2, n2) * phi_bin_width * 100
 
     summary = (
-        f"BI-WEIBULL FIT\n"
+        f"BI-LENGTH BIASED WEIBULL FIT\n"
         f"  lambda1 = {lam1:.4f} mm ({lam1_phi:+.3f} Phi)  +/- {perr[0]:.4f}\n"
         f"  n1      = {n1:.4f}  +/- {perr[1]:.4f}\n"
         f"  lambda2 = {lam2:.6f} mm ({lam2_phi:+.3f} Phi)  +/- {perr[2]:.6f}\n"
@@ -151,9 +151,9 @@ def _fit_bi_weibull(arrays, clicks):
         "y_total": y_total,
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
-        "total_label": "Bi-Weibull fit",
-        "pop1_label": f"Pop. 1  \u03bb\u2081 = {lam1:.3f} mm",
-        "pop2_label": f"Pop. 2  \u03bb\u2082 = {lam2:.5f} mm",
+        "total_label": "Bi-Length Biased Weibull fit",
+        "pop1_label": f"Pop. 1  $\\lambda_1$ = {lam1:.3f} mm, $n_1$= {n1:.3f}",
+        "pop2_label": f"Pop. 2  $\\lambda_2$ = {lam2:.5f} mm, $n_2$ = {n2:.3f}",
         "summary_text": summary,
     }
 
@@ -188,26 +188,26 @@ def _fit_bi_rr(arrays, clicks):
         bi_rr_density, phi_data, wt_pct_norm,
         p0=p0, bounds=(lower, upper), maxfev=50000
     )
-    w_fit, sigma1_fit, k1_fit, sigma2_fit, k2_fit, amp_fit = popt
+    w_fit, lambda1_fit, n1_fit, lambda2_fit, n2_fit, amp_fit = popt
     fit_vals = bi_rr_density(phi_data, *popt)
     r2 = float(1 - np.sum((wt_pct_norm - fit_vals) ** 2) / ss_tot)
     perr = np.sqrt(np.diag(pcov))
     w_err, s1_err, k1_err, s2_err, k2_err, amp_err = perr
 
-    if sigma1_fit < sigma2_fit:
+    if lambda1_fit < lambda2_fit:
         w_fit = 1 - w_fit
-        sigma1_fit, sigma2_fit = sigma2_fit, sigma1_fit
-        k1_fit, k2_fit = k2_fit, k1_fit
+        lambda1_fit, lambda2_fit = lambda2_fit, lambda1_fit
+        n1_fit, n2_fit = n2_fit, n1_fit
         s1_err, s2_err = s2_err, s1_err
         k1_err, k2_err = k2_err, k1_err
 
-    phi1_mode = -np.log2(sigma1_fit)
-    phi2_mode = -np.log2(sigma2_fit)
+    phi1_mode = -np.log2(lambda1_fit)
+    phi2_mode = -np.log2(lambda2_fit)
 
     phi_smooth = np.linspace(phi_data.min() - 0.5, phi_data.max() + 0.5, 1000)
-    y_total = bi_rr_density(phi_smooth, w_fit, sigma1_fit, k1_fit, sigma2_fit, k2_fit, amp_fit)
-    y_pop1 = amp_fit * w_fit * rr_density_phi(phi_smooth, sigma1_fit, k1_fit)
-    y_pop2 = amp_fit * (1 - w_fit) * rr_density_phi(phi_smooth, sigma2_fit, k2_fit)
+    y_total = bi_rr_density(phi_smooth, w_fit, lambda1_fit, n1_fit, lambda2_fit, n2_fit, amp_fit)
+    y_pop1 = amp_fit * w_fit * rr_density_phi(phi_smooth, lambda1_fit, n1_fit)
+    y_pop2 = amp_fit * (1 - w_fit) * rr_density_phi(phi_smooth, lambda2_fit, n2_fit)
 
     # -------------------------------------------------------------
     # Cumulative "coarser than" survival curve, M(>l)/M_T, for the
@@ -255,17 +255,17 @@ def _fit_bi_rr(arrays, clicks):
     summary = (
         f"BI-ROSIN-RAMMLER FIT\n"
         f"  w (coarse mass fraction) = {w_fit:.4f} +/- {w_err:.4f}\n"
-        f"  sigma_coarse = {sigma1_fit:.5f} mm (phi={phi1_mode:.3f})  +/- {s1_err:.5f}\n"
-        f"  k_coarse     = {k1_fit:.4f}  +/- {k1_err:.4f}\n"
-        f"  sigma_fine   = {sigma2_fit:.5f} mm (phi={phi2_mode:.3f})  +/- {s2_err:.5f}\n"
-        f"  k_fine       = {k2_fit:.4f}  +/- {k2_err:.4f}\n"
+        f"  lambda_coarse = {lambda1_fit:.5f} mm (phi={phi1_mode:.3f})  +/- {s1_err:.5f}\n"
+        f"  n_coarse     = {n1_fit:.4f}  +/- {k1_err:.4f}\n"
+        f"  lambda_fine   = {lambda2_fit:.5f} mm (phi={phi2_mode:.3f})  +/- {s2_err:.5f}\n"
+        f"  k_fine       = {n2_fit:.4f}  +/- {k2_err:.4f}\n"
         f"  amp          = {amp_fit:.4f}  +/- {amp_err:.4f}\n"
         f"  R^2          = {r2:.4f}"
     )
 
     return {
-        "params": {"w": w_fit, "sigma_coarse_mm": sigma1_fit, "k_coarse": k1_fit,
-                    "sigma_fine_mm": sigma2_fit, "k_fine": k2_fit,
+        "params": {"w": w_fit, "sigma_coarse_mm": lambda1_fit, "n_coarse": n1_fit,
+                    "lambda_fine_mm": lambda2_fit, "k_fine": n2_fit,
                     "amp": amp_fit, "R2": r2},
         "rmse": None,
         "phi_smooth": phi_smooth,
@@ -273,8 +273,8 @@ def _fit_bi_rr(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": f"Bi-Rosin-Rammler fit (R\u00b2={r2:.3f})",
-        "pop1_label": "Coarse mode",
-        "pop2_label": "Fine mode",
+        "pop1_label": f"Coarse mode $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
+        "pop2_label": f"Fine mode $\\lambda_1$={lambda2_fit:.3f} mm, $n_1$={n2_fit:.3f}",
         "summary_text": summary,
         "rr_cumulative": rr_cumulative,
     }
@@ -402,14 +402,14 @@ def _fit_bi_power_law(arrays, clicks):
 
 MODEL_FIT_FUNCS = {
     "bi_gaussian": _fit_bi_gaussian,
-    "bi_weibull": _fit_bi_weibull,
+    "bi_lb_weibull": _fit_bi_weibull,
     "bi_rr": _fit_bi_rr,
     "bi_power_law": _fit_bi_power_law,
 }
 
 MODEL_LABELS = {
     "bi_gaussian": "Bi-Gaussian",
-    "bi_weibull": "Bi-Weibull",
+    "bi_lb_weibull": "Bi-Length Biased Weibull",
     "bi_rr": "Bi-Rosin-Rammler",
     "bi_power_law": "Bi-power-law",
 }

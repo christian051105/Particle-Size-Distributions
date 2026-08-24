@@ -26,7 +26,7 @@ from gui.results_store import RESULTS_PATH
 
 MODEL_CHOICES = [
     ("Bi-Gaussian", "bi_gaussian"),
-    ("Bi-Weibull", "bi_weibull"),
+    ("Bi-Length Biased Weibull", "bi_lb_weibull"),
     ("Bi-power-law", "bi_power_law"),
     ("Bi-Rosin-Rammler", "bi_rr"),
 ]
