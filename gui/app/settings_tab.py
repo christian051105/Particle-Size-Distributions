@@ -78,18 +78,19 @@ class SettingsTab(QWidget):
         # --- column mapping ---------------------------------------------
         mapping_box = QGroupBox("2. Map columns")
         mapping_form = QFormLayout(mapping_box)
-        self.phi_combo = QComboBox()
         self.size_combo = QComboBox()
         self.weight_combo = QComboBox()
-        self.phi_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
-        mapping_form.addRow("\u03a6 (phi) column:", self.phi_combo)
-        mapping_form.addRow("Size column (optional, needed for bi-power-law):", self.size_combo)
+        self.size_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
+        mapping_form.addRow("Grain size column:", self.size_combo)
+ 
+        self.size_type_combo = QComboBox()
+        self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
+        self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
+        mapping_form.addRow("Grain size column is in:", self.size_type_combo)
+ 
         mapping_form.addRow("Weight / mass column:", self.weight_combo)
-
-        self.size_unit_combo = QComboBox()
-        self.size_unit_combo.addItems(["mm", "\u00b5m", "already in phi units"])
-        mapping_form.addRow("Size column unit:", self.size_unit_combo)
         layout.addWidget(mapping_box)
+
 
         # --- bin width ---------------------------------------------------
         bin_box = QGroupBox("3. Phi bin width")
