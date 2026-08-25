@@ -359,7 +359,7 @@ class PlotTab(QWidget):
         )
 
         if is_outside_legend:
-            self.figure.subplots_adjust(top=0.90, bottom=0.09, left=0.09, right=0.98)
+            self.figure.subplots_adjust(top=0.85, bottom=0.09, left=0.09, right=0.98)
             self.canvas.draw()  # one throwaway draw so matplotlib computes real extents
 
             renderer = self.canvas.get_renderer()
@@ -372,7 +372,7 @@ class PlotTab(QWidget):
             right_margin = max(0.68, 1.0 - legend_w_frac - 0.04)
             self.figure.subplots_adjust(right=right_margin)
         else:
-            self.figure.subplots_adjust(top=0.90, bottom=0.09, left=0.09, right=0.97)
+            self.figure.subplots_adjust(top=0.85, bottom=0.09, left=0.09, right=0.97)
 
         self.canvas.draw()
         self.canvas.repaint()
