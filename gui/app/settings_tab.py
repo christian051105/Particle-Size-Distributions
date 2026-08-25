@@ -202,10 +202,9 @@ class SettingsTab(QWidget):
                                  "That header row produced no columns. Try a different row.")
             return
 
-        for combo in (self.phi_combo, self.size_combo, self.weight_combo):
+        for combo in (self.size_combo, self.weight_combo):
             combo.clear()
-        self.phi_combo.addItems(cols)
-        self.size_combo.addItems([NONE_OPTION] + cols)
+        self.size_combo.addItems(cols)
         self.weight_combo.addItems([NONE_OPTION] + cols)
 
         # best-effort guesses
@@ -224,11 +223,6 @@ class SettingsTab(QWidget):
         self._set_columns_enabled(True)
         self._try_suggest_bin_width()
         self._update_power_law_note()
-
-    def _update_power_law_note(self):
-        needs_size = self.model_checkboxes["bi_power_law"].isChecked()
-        has_size = self.size_combo.currentText() not in ("", NONE_OPTION)
-        self.power_law_note.setVisible(needs_size and not has_size)
 
     def _try_suggest_bin_width(self):
         """Best-effort bin-width suggestion straight from the raw phi
