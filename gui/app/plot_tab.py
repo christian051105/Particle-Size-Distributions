@@ -84,7 +84,7 @@ class PlotTab(QWidget):
         self.FIT_COLORS = {
             "bi_gaussian": "#e69f00",
             "bi_lb_weibull": '#56b439',
-            "bi_rr": '#009e73',
+            "bi_rr": '#cc79a7',
         }#Free colorblond safe colors:#8CFF00,#
         self.POP_MARKER_PAIRS = {
             "bi_gaussian": ('dashed', 'dotted'),
