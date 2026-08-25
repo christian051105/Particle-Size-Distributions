@@ -165,6 +165,8 @@ class PlotTab(QWidget):
         w_px = max(self.canvas.width(), 1)
         h_px = max(self.canvas.height(), 1)
         dpi = self.figure.get_dpi()
+        print(f"[DEBUG] canvas widget size = {w_px}x{h_px} px, dpi={dpi}, "
+              f"-> figsize={w_px/dpi:.2f}x{h_px/dpi:.2f} in")
         self.figure.set_size_inches(w_px / dpi, h_px / dpi, forward=False)
 
     # ---------------------------------------------------------------
