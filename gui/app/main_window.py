@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import QMainWindow, QTabWidget
 from gui.app.home_tab import HomeTab
 from gui.app.settings_tab import SettingsTab
 from gui.app.plot_tab import PlotTab
+from gui.app.export_tab import ExportTab
 
 
 class MainWindow(QMainWindow):
