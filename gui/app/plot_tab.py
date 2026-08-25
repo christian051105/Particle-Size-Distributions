@@ -80,7 +80,7 @@ class PlotTab(QWidget):
         self._panel_specs = []        # rebuilt on every settings load / phase change
         self._page_index = 0
         #--Plot Style parameters -----------------------------------------
-        self.CDATA = '#ff7f00'
+        self.CDATA = '#FF7F00'
         self.FIT_COLORS = {
             "bi_gaussian": "#377eb8",
             "bi_lb_weibull": '#984ea3',
@@ -305,11 +305,11 @@ class PlotTab(QWidget):
 
         self._page_index = max(0, min(self._page_index, len(self._panel_specs) - 1))
         spec = self._panel_specs[self._page_index]
-        print(1)
+
         for ax in self.figure.axes:
             ax.set_yscale('linear')
         self.figure.clear()
-        print(2)
+        
         self._sync_figure_size_to_canvas()
         ax = self.figure.add_subplot(111)
 
