@@ -82,7 +82,7 @@ class PlotTab(QWidget):
         #--Plot Style parameters -----------------------------------------
         self.CDATA = '#f0e443'
         self.FIT_COLORS = {
-            "bi_gaussian": "#e69f00",
+            "bi_gaussian": "#d55e00",
             "bi_lb_weibull": '#56b439',
             "bi_rr": '#cc79a7',
         }#Free colorblond safe colors:#8CFF00,#
