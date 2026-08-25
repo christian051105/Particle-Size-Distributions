@@ -160,7 +160,7 @@ class PlotTab(QWidget):
         self._sync_figure_size_to_canvas()
         if self._panel_specs:
             self.canvas.draw_idle()
-
+          
     def _sync_figure_size_to_canvas(self):
         w_px = max(self.canvas.width(), 1)
         h_px = max(self.canvas.height(), 1)
@@ -168,6 +168,13 @@ class PlotTab(QWidget):
         if self.figure.get_dpi() != FIXED_DPI:
             self.figure.set_dpi(FIXED_DPI)
         self.figure.set_size_inches(w_px / FIXED_DPI, h_px / FIXED_DPI, forward=False)
+        try:
+            dpr = self.canvas.devicePixelRatioF()
+        except Exception:
+            dpr = "n/a"
+        print(f"[DEBUG sync] canvas={w_px}x{h_px}px dpr={dpr} "
+              f"fig.dpi_after={self.figure.get_dpi()} "
+              f"fig.size_in={self.figure.get_size_inches()}")
 
     # ---------------------------------------------------------------
     def load_settings(self, dataset_label, arrays, model_keys, output_path):
@@ -374,6 +381,10 @@ class PlotTab(QWidget):
 
         self.canvas.draw()
         self.canvas.repaint()
+        print(f"[DEBUG post-draw] fig.dpi={self.figure.get_dpi()} "
+              f"fig.size_in={self.figure.get_size_inches()} "
+              f"canvas={self.canvas.width()}x{self.canvas.height()}px "
+              f"canvas.get_width_height={self.canvas.get_width_height()}")
 
         n = len(self._panel_specs)
         self.page_label.setText(f"Page {self._page_index + 1} / {n}  --  {self._page_title_for(spec)}")
