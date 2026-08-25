@@ -88,7 +88,6 @@ class PlotTab(QWidget):
         self.worker = None
         self._results_by_model = {}   # model_key -> result dict (successes only)
         self._click_cid = None
-        self._fit_log = []
         self._panel_specs = []        # rebuilt on every settings load / phase change
         self._page_index = 0
 
@@ -178,6 +177,7 @@ class PlotTab(QWidget):
         self.density_clicks = []
         self.power_law_clicks = []
         self._results_by_model = {}
+        self._fit_log=[]
         self.results_text.clear()
         self.save_button.setEnabled(False)
 
@@ -382,6 +382,7 @@ class PlotTab(QWidget):
         self.density_clicks = []
         self.power_law_clicks = []
         self._results_by_model = {}
+        self._fit_log = []
         self.results_text.clear()
         self.save_button.setEnabled(False)
         self._phase = "density" if self._density_models() else "power_law"
