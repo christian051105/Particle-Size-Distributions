@@ -208,21 +208,27 @@ class SettingsTab(QWidget):
         self.weight_combo.addItems([NONE_OPTION] + cols)
 
         # best-effort guesses
+        guessed_phi_idx = None
+        guessed_size_idx = None
         for i, c in enumerate(cols):
             lc = c.lower()
-            if "phi" in lc or "\u03a6" in lc:
-                self.phi_combo.setCurrentIndex(i)
             if "weight" in lc or "wt" in lc or "mass" in lc:
                 self.weight_combo.setCurrentText(c)
-            if any(tok in lc for tok in ("size", "diameter", "d_mm")) or lc.strip() == "mm":
-                self.size_combo.setCurrentText(c)
-
-        self.size_combo.currentIndexChanged.connect(self._update_power_law_note)
-        self.model_checkboxes["bi_power_law"].toggled.connect(self._update_power_law_note)
-
+            if guessed_phi_idx is None and ("phi" in lc or "\u03a6" in lc):
+                guessed_phi_idx = i
+            if guessed_size_idx is None and (any(tok in lc for tok in ("size", "diameter", "d_mm")) or lc.strip() == "mm"):
+                guessed_size_idx = i
+ 
+        if guessed_phi_idx is not None:
+            self.size_combo.setCurrentIndex(guessed_phi_idx)
+            self.size_type_combo.setCurrentText("\u03a6 (phi)")
+        elif guessed_size_idx is not None:
+            self.size_combo.setCurrentIndex(guessed_size_idx)
+            self.size_type_combo.setCurrentText("mm")
+ 
         self._set_columns_enabled(True)
         self._try_suggest_bin_width()
-        self._update_power_law_note()
+
 
     def _try_suggest_bin_width(self):
         """Best-effort bin-width suggestion straight from the raw phi
