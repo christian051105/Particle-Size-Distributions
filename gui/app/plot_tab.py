@@ -425,7 +425,7 @@ class PlotTab(QWidget):
 
         clicks = self._current_clicks()
         clicks.append((x_data, y_data))
-        self.ax_click_target.plot(x_data, y_data, 'x', color='red',
+        self.ax_click_target.plot(x_data, y_data, 'x', color='black',
                                    markersize=10, markeredgewidth=2, zorder=5)
         self.canvas.draw()
 
