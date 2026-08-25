@@ -28,10 +28,12 @@ class MainWindow(QMainWindow):
         self.home_tab = HomeTab()
         self.settings_tab = SettingsTab()
         self.plot_tab = PlotTab()
+        self.export_tab=ExportTab(self.plot_tab)
 
         self.tabs.addTab(self.home_tab, "Home")
         self.tabs.addTab(self.settings_tab, "Settings")
         self.tabs.addTab(self.plot_tab, "Plot && Fit")
+        self.tabs.addTab(self.export_tab,"Export Tab")
 
         # Settings/Plot tabs are visible but greyed out conceptually
         # until reached in order -- kept simple here by just leaving
