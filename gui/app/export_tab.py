@@ -210,7 +210,9 @@ class ExportTab(QWidget):
                 filename = f"{self._safe_filename(dataset_label)}_page{i + 1}_{self._safe_filename(title)}.png"
                 dest = os.path.join(out_dir, filename)
                 try:
+                    original_dpi = self.plot_tab.figure.get_dpi()
                     self.plot_tab.figure.savefig(dest, dpi=200, bbox_inches="tight")
+                    self.plot_tab.figure.set_dpi(original_dpi)
                     saved_files.append(dest)
                 except Exception as e:
                     failed.append(f"Page {i + 1} ({title}): {e}")
