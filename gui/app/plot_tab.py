@@ -480,7 +480,8 @@ class PlotTab(QWidget):
 
     # ---------------------------------------------------------------
     def _render_density_panel(self, ax, phi, weight_pct, model_keys_to_plot, title, is_overlay=False):
-        ax.bar(phi, weight_pct, width=0.90, color=CDATA, alpha=0.55,
+        bar_width = 0.90 * self.arrays.get("phi_bin_width", 1.0)
+        ax.bar(phi, weight_pct, width=bar_width, color=CDATA, alpha=0.55,
                edgecolor='grey', linewidth=0.5, label='Data')
         ax.set_xlabel('\u03a6')
         ax.set_ylabel('Mass (wt.%)')
