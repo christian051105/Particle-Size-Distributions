@@ -82,7 +82,7 @@ class PlotTab(QWidget):
         #--Plot Style parameters -----------------------------------------
         self.CDATA = '#f0e443'
         self.FIT_COLORS = {
-            "bi_gaussian": "#d55e00",
+            "bi_gaussian": "#000000",
             "bi_lb_weibull": '#56b439',
             "bi_rr": '#cc79a7',
         }#Free colorblond safe colors:#8CFF00,#
@@ -425,7 +425,7 @@ class PlotTab(QWidget):
 
         clicks = self._current_clicks()
         clicks.append((x_data, y_data))
-        self.ax_click_target.plot(x_data, y_data, 'x', color='black',
+        self.ax_click_target.plot(x_data, y_data, 'x', color='red',
                                    markersize=10, markeredgewidth=2, zorder=5)
         self.canvas.draw()
 
