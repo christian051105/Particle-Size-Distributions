@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("TGSD Fitting Toolkit")
-        self.resize(950, 800)
+        self.resize(1300, 1000)
 
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
