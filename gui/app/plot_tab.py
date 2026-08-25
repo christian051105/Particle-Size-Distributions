@@ -80,7 +80,7 @@ class PlotTab(QWidget):
         self._panel_specs = []        # rebuilt on every settings load / phase change
         self._page_index = 0
         #--Plot Style parameters -----------------------------------------
-        self.CDATA = '#0072b2'
+        self.CDATA = '#f0e443'
         self.FIT_COLORS = {
             "bi_gaussian": "#e69f00",
             "bi_lb_weibull": '#56b439',
