@@ -162,19 +162,14 @@ class PlotTab(QWidget):
             self.canvas.draw_idle()
           
     def _sync_figure_size_to_canvas(self):
+        dpr = self.canvas.devicePixelRatioF()
         w_px = max(self.canvas.width(), 1)
         h_px = max(self.canvas.height(), 1)
         FIXED_DPI = 100.0
-        if self.figure.get_dpi() != FIXED_DPI:
-            self.figure.set_dpi(FIXED_DPI)
+        target_dpi = FIXED_DPI * dpr
+        if self.figure.get_dpi() != target_dpi:
+            self.figure.set_dpi(target_dpi)
         self.figure.set_size_inches(w_px / FIXED_DPI, h_px / FIXED_DPI, forward=False)
-        try:
-            dpr = self.canvas.devicePixelRatioF()
-        except Exception:
-            dpr = "n/a"
-        print(f"[DEBUG sync] canvas={w_px}x{h_px}px dpr={dpr} "
-              f"fig.dpi_after={self.figure.get_dpi()} "
-              f"fig.size_in={self.figure.get_size_inches()}")
 
     # ---------------------------------------------------------------
     def load_settings(self, dataset_label, arrays, model_keys, output_path):
