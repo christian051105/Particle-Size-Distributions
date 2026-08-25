@@ -587,12 +587,11 @@ class PlotTab(QWidget):
         return add_mm_twin_axis(ax)
 
     def _render_rr_cumulative(self, ax, result):
-        """Single combined cumulative-view panel: plotted against
-        diameter (mm, log-x, on the primary axis -- matching the
-        convention used elsewhere for the physically-meaningful size
-        scale) with a secondary phi axis on top, exactly like the
-        other phi<->mm twin axes used throughout the app."""
-        ax.set_xlabel('Particle diameter, $l$ (mm, log scale)')
+        """Single combined cumulative-view panel: plotted against phi
+        on the primary (linear) axis, matching the convention used on
+        every other page in the app, with a secondary mm axis on top
+        via the shared models.add_mm_twin_axis helper."""
+        ax.set_xlabel('\u03a6')
         ax.set_ylabel(r'$M(>l)/M_T$')
         ax.set_title('Bi-Rosin-Rammler: cumulative view (mm + \u03a6)',
                       fontsize=10, fontweight='bold', pad=32)
@@ -600,28 +599,19 @@ class PlotTab(QWidget):
 
         if result is not None and "rr_cumulative" in result:
             cum = result["rr_cumulative"]
-            ax.semilogx(cum["diam_mm_data"], cum["M_gt_l_data"], 'o', color='k',
-                        markersize=5, label='Data (empirical)', zorder=5)
-            ax.semilogx(cum["diam_mm_fit"], cum["M_gt_l_fit"], '-', color='crimson',
-                        lw=2, label=f'Bi-Rosin-Rammler (fitted density) \n' + result["cum_label"])
-            ax.invert_xaxis()
+            ax.plot(cum["phi_data_sorted"], cum["M_gt_l_data"], 'o', color='k',
+                    markersize=5, label='Data (empirical)', zorder=5)
+            ax.plot(cum["phi_fit_sorted"], cum["M_gt_l_fit"], '-', color='crimson',
+                    lw=2, label='Bi-Rosin-Rammler (fitted density)')
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
             ax.text(0.5, 0.5, "No Bi-Rosin-Rammler fit yet",
                     ha='center', va='center', transform=ax.transAxes,
                     fontsize=9, color='grey')
-            # give the axis sane default limits so the (as-yet-absent)
-            # twin phi axis has something sensible to compute from
             phi = self.arrays["phi"]
-            ax.set_xlim(2.0 ** (-(phi.max() + 1)), 2.0 ** (-(phi.min() - 1)))
-            ax.set_xscale('log')
-            ax.invert_xaxis()
+            ax.set_xlim(phi.min() - 1, phi.max() + 1)
 
-        # add_mm_twin_axis assumes a phi-scaled linear x-axis and
-        # computes tick positions via phi = -log2(mm) -- here the
-        # PRIMARY axis is already mm (log scale), so we add the phi
-        # twin manually instead of reusing add_mm_twin_axis as-is.
-        return self._add_phi_twin_axis_on_mm(ax)
+        return add_mm_twin_axis(ax)
 
     @staticmethod
     def _add_phi_twin_axis_on_mm(ax):
