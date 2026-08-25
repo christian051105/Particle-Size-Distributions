@@ -235,12 +235,32 @@ class SettingsTab(QWidget):
         column, so the user gets a sensible default without needing to
         confirm first."""
         try:
+            import numpy as np
             import pandas as pd
-            phi_col = self.phi_combo.currentText()
-            phi_raw = pd.to_numeric(self.raw_df[phi_col], errors="coerce").dropna().to_numpy()
+            size_col = self.size_combo.currentText()
+            size_raw = pd.to_numeric(self.raw_df[size_col], errors="coerce").dropna().to_numpy()
+            size_type = self._current_size_type()
+            if size_type == "mm":
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    phi_raw = -np.log2(size_raw)
+            elif size_type == "\u00b5m":
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    phi_raw = -np.log2(size_raw / 1000.0)
+            else:
+                phi_raw = size_raw
+            phi_raw = phi_raw[np.isfinite(phi_raw)]
             self.suggest_bin_width_from_phi(phi_raw)
         except Exception:
             pass
+            
+    def _current_size_type(self):
+        """Map the size-type combo's display text to the internal key
+        used by data_prep.build_arrays."""
+        text = self.size_type_combo.currentText()
+        if text.startswith("\u03a6"):
+            return "phi"
+        return text  # "mm" or "\u00b5m"
+
 
     def _on_browse_output(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -258,10 +278,8 @@ class SettingsTab(QWidget):
             QMessageBox.warning(self, "Not ready", "Load columns before confirming.")
             return
 
-        phi_col = self.phi_combo.currentText()
         size_col = self.size_combo.currentText()
         weight_col = self.weight_combo.currentText()
-        size_col = None if size_col == NONE_OPTION else size_col
         weight_col = None if weight_col == NONE_OPTION else weight_col
 
         model_keys = self._selected_model_keys()
@@ -269,23 +287,19 @@ class SettingsTab(QWidget):
             QMessageBox.warning(self, "No model selected",
                                  "Select at least one model to fit.")
             return
-        if "bi_power_law" in model_keys and size_col is None:
-            QMessageBox.warning(
-                self, "Size column required",
-                "Bi-power-law needs a physical size column (mm or \u00b5m). "
-                "Select one, or deselect Bi-power-law."
-            )
+       if not size_col:
+            QMessageBox.warning(self, "Grain size column required",
+                                 "All models need a grain size column (\u03a6, mm, or \u00b5m).")
             return
         if weight_col is None:
             QMessageBox.warning(self, "Weight column required",
                                  "All models need a weight/mass column.")
             return
 
-        mapping = {"phi": phi_col, "size": size_col, "weight": weight_col}
-        conventions = {"size_unit": self.size_unit_combo.currentText()}
+        mapping = {"size": size_col, "size_type": self._current_size_type(), "weight": weight_col}
 
         try:
-            arrays = build_arrays(self.raw_df, mapping, conventions)
+            arrays = build_arrays(self.raw_df, mapping)
         except ValueError as e:
             QMessageBox.warning(self, "Could not build data", str(e))
             return
