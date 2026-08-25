@@ -157,12 +157,12 @@ class SettingsTab(QWidget):
 
     # ---------------------------------------------------------------
     def _set_columns_enabled(self, enabled):
-        for w in (self.phi_combo, self.size_combo, self.weight_combo,
-                   self.size_unit_combo, self.bin_width_spin,
-                   self.confirm_button):
+        for w in (self.size_combo, self.size_type_combo, self.weight_combo,
+                   self.bin_width_spin, self.confirm_button):
             w.setEnabled(enabled)
         for cb in self.model_checkboxes.values():
             cb.setEnabled(enabled)
+ 
 
     def load_file(self, path):
         """Called by main_window when a file is selected on the Home tab."""
