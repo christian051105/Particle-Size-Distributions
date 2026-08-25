@@ -376,10 +376,6 @@ class PlotTab(QWidget):
 
         self.canvas.draw()
         self.canvas.repaint()
-        print(f"[DEBUG post-draw] fig.dpi={self.figure.get_dpi()} "
-              f"fig.size_in={self.figure.get_size_inches()} "
-              f"canvas={self.canvas.width()}x{self.canvas.height()}px "
-              f"canvas.get_width_height={self.canvas.get_width_height()}")
 
         n = len(self._panel_specs)
         self.page_label.setText(f"Page {self._page_index + 1} / {n}  --  {self._page_title_for(spec)}")
