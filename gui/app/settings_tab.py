@@ -287,7 +287,7 @@ class SettingsTab(QWidget):
             QMessageBox.warning(self, "No model selected",
                                  "Select at least one model to fit.")
             return
-       if not size_col:
+        if not size_col:
             QMessageBox.warning(self, "Grain size column required",
                                  "All models need a grain size column (\u03a6, mm, or \u00b5m).")
             return
