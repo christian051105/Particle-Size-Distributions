@@ -62,20 +62,9 @@ from gui.models import entropy_of_info, add_mm_twin_axis
 from gui.results_store import save_fit_result
 from gui.app.fit_worker import FitWorker, MODEL_LABELS
 
-CDATA = '#c0392b'
-FIT_COLORS = {
-    "bi_gaussian": '#2c3e50',
-    "bi_lb_weibull": '#8e44ad',
-    "bi_rr": '#16a085',
-}
-POP_COLOR_PAIRS = {
-    "bi_gaussian": ('#2980b9', '#27ae60'),
-    "bi_lb_weibull": ('#2980b9', '#27ae60'),
-    "bi_rr": ('#2980b9', '#27ae60'),
-}
-N_CLICKS_REQUIRED = 2
-
-FIGURE_SIZE_IN = (7.5, 5.5)   # one page, generous height for a twin axis + legend
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']
 
 
 class PlotTab(QWidget):
@@ -90,6 +79,21 @@ class PlotTab(QWidget):
         self._click_cid = None
         self._panel_specs = []        # rebuilt on every settings load / phase change
         self._page_index = 0
+        #--Plot Style parameters -----------------------------------------
+        self.CDATA = '#FF7F00'
+        self.FIT_COLORS = {
+            "bi_gaussian": "#377eb8",
+            "bi_lb_weibull": '#984ea3',
+            "bi_rr": '#4daf4a',
+        }#Free colorblond safe colors:#8CFF00,#
+        self.POP_MARKER_PAIRS = {
+            "bi_gaussian": ('dashed', 'dotted'),
+            "bi_lb_weibull": ('dashed', 'dotted'),
+            "bi_rr": ('dashed', 'dotted'),
+        }
+        self.N_CLICKS_REQUIRED = 2
+
+        self.FIGURE_SIZE_IN = (7.5, 5.5)   # one page, generous height for a twin axis + legend
 
         # -- phase state --------------------------------------------------
         # "density": clicking the overlay page, fits Gaussian/Weibull/RR.
@@ -125,7 +129,7 @@ class PlotTab(QWidget):
         layout.addLayout(nav_row)
 
         # -- single reusable figure/canvas for whichever page is shown --
-        self.figure = Figure(figsize=FIGURE_SIZE_IN)
+        self.figure = Figure(figsize=self.FIGURE_SIZE_IN)
         self.canvas = FigureCanvasQTAgg(self.figure)
         # Let the canvas shrink/grow freely with the window -- do NOT
         # pin a minimum height. 
@@ -324,9 +328,17 @@ class PlotTab(QWidget):
             if is_target:
                 self.ax_click_target = ax
                 self.ax_click_target_twin = twin
-            for cx, cy in self.density_clicks:
+
+            #cx, cy = self.density_clicks[0]
+            if self.density_clicks: #checks list not empty
+                clicks = np.array(self.density_clicks)
+                cx = clicks[:,0]
+                cy = clicks[:,1]
                 ax.plot(cx, cy, 'x', color='black', markersize=10,
-                        markeredgewidth=2, zorder=5)
+                    markeredgewidth=2, zorder=5,label="Guessed Peak Locations")
+                
+            ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0),
+                      borderaxespad=0.0)
 
         elif kind == "density_single":
             key = spec["model_key"]
@@ -417,7 +429,7 @@ class PlotTab(QWidget):
                                    markersize=10, markeredgewidth=2, zorder=5)
         self.canvas.draw()
 
-        if len(clicks) >= N_CLICKS_REQUIRED:
+        if len(clicks) >= self.N_CLICKS_REQUIRED:
             self._run_current_phase_fit()
 
     # ---------------------------------------------------------------
@@ -485,7 +497,7 @@ class PlotTab(QWidget):
     # ---------------------------------------------------------------
     def _render_density_panel(self, ax, phi, weight_pct, model_keys_to_plot, title, is_overlay=False):
         bar_width = 0.90 * self.arrays.get("phi_bin_width", 1.0)
-        ax.bar(phi, weight_pct, width=bar_width, color=CDATA, alpha=0.55,
+        ax.bar(phi, weight_pct, width=bar_width, color=self.CDATA, alpha=0.55,
                edgecolor='grey', linewidth=0.5, label='Data')
         ax.set_xlabel('\u03a6')
         ax.set_ylabel('Mass (wt.%)')
@@ -496,25 +508,21 @@ class PlotTab(QWidget):
 
         for model_key in model_keys_to_plot:
             result = self._results_by_model[model_key]
-            color = FIT_COLORS.get(model_key, '#2c3e50')
-            pop_c1, pop_c2 = POP_COLOR_PAIRS.get(model_key, ('#2980b9', '#27ae60'))
+            color = self.FIT_COLORS.get(model_key, '#2c3e50')
+            pop1_ls, pop2_ls = self.POP_MARKER_PAIRS.get(model_key)
             phi_smooth = result["phi_smooth"]
             ax.plot(phi_smooth, result["y_total"], color=color, lw=2.0,
                     label=result.get("total_label", MODEL_LABELS[model_key]))
             if "y_pop1" in result:
-                ax.plot(phi_smooth, result["y_pop1"], color=pop_c1, lw=1.0,
-                        ls='--', alpha=0.7, label=result.get("pop1_label", "Pop. 1"))
+                ax.plot(phi_smooth, result["y_pop1"], color=color, lw=1.50,
+                        ls=pop1_ls, alpha=0.7, label=result.get("pop1_label", "Pop. 1"))
             if "y_pop2" in result:
-                ax.plot(phi_smooth, result["y_pop2"], color=pop_c2, lw=1.0,
-                        ls='--', alpha=0.7, label=result.get("pop2_label", "Pop. 2"))
+                ax.plot(phi_smooth, result["y_pop2"], color=color, lw=1.50,
+                        ls=pop2_ls, alpha=0.7, label=result.get("pop2_label", "Pop. 2"))
 
         twin = add_mm_twin_axis(ax)
-        if is_overlay:
-            # overlay panel tends to have many legend entries -- put it
-            # outside the axes on the right so it never overlaps the peaks
-            ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0),
-                      borderaxespad=0.0)
-        else:
+
+        if not is_overlay:
             ax.legend(fontsize=7, loc='upper left', framealpha=0.85)
         return twin
 
