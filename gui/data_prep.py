@@ -56,23 +56,28 @@ def build_arrays(df, mapping, conventions=None):
 
     Returns dict with keys: phi, size_mm, weight_pct, phi_bin_width.
     Raises ValueError on bad/empty weight columns.
+
+    Whichever unit the size column is in, BOTH phi and size_mm (in mm)
+    are always derived
     """
-    phi_col = mapping["phi"]
-    phi_raw = pd.to_numeric(df[phi_col], errors="coerce").to_numpy(dtype=float)
-    phi = phi_raw - 0.5  # bin edges -> bin centers
-
-    size_mm = None
-    if mapping.get("size") is not None:
-        size_col = mapping["size"]
-        size_raw = pd.to_numeric(df[size_col], errors="coerce").to_numpy(dtype=float)
-        unit = conventions["size_unit"] if conventions is not None else "mm"
-        if unit == "mm":
-            size_mm = size_raw
-        elif unit == "\u00b5m":
-            size_mm = size_raw / 1000.0
-        elif unit == "already in phi units":
-            size_mm = 2.0 ** (-size_raw)
-
+    size_col = mapping["size"]
+    size_type = mapping.get("size_type", "phi")
+    size_raw = pd.to_numeric(df[size_col], errors="coerce").to_numpy(dtype=float)
+ 
+    if size_type == "phi":
+        phi_edge = size_raw
+    elif size_type == "mm":
+        with np.errstate(divide="ignore", invalid="ignore"):
+            phi_edge = -np.log2(size_raw)
+    elif size_type == "\u00b5m":
+        mm_edge = size_raw / 1000.0
+        with np.errstate(divide="ignore", invalid="ignore"):
+            phi_edge = -np.log2(mm_edge)
+    else:
+        raise ValueError(f"Unknown size_type '{size_type}'.")
+        
+    phi = phi_edge - 0.5  # bin edges -> bin centers, always in phi-space
+    
     weight_pct = None
     if mapping.get("weight") is not None:
         weight_col = mapping["weight"]
