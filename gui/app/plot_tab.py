@@ -305,8 +305,11 @@ class PlotTab(QWidget):
 
         self._page_index = max(0, min(self._page_index, len(self._panel_specs) - 1))
         spec = self._panel_specs[self._page_index]
-
+        print(1)
+        for ax in self.figure.axes:
+            ax.set_yscale('linear')
         self.figure.clear()
+        print(2)
         self._sync_figure_size_to_canvas()
         ax = self.figure.add_subplot(111)
 
