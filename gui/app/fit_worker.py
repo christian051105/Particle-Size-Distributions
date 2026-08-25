@@ -170,6 +170,7 @@ def _fit_bi_rr(arrays, clicks):
     # coarse first, fine second. Our clicks come in whatever order the user
     # clicked, so sort by phi (fine phi is numerically larger) to guarantee
     # coarse-then-fine regardless of click order.
+    
     (phi_coarse, y_coarse), (phi_fine, y_fine) = sorted(clicks, key=lambda pt: pt[0])
 
     sigma1_guess = 2.0 ** (-phi_coarse)
@@ -285,29 +286,23 @@ def _fit_bi_rr(arrays, clicks):
 # Bi-power-law
 # ---------------------------------------------------------------------
 def _fit_bi_power_law(arrays, clicks):
-    if arrays.get("size_mm") is None:
-        raise ValueError(
-            "Bi-power-law needs a physical size column (mm or \u00b5m) -- "
-            "go back to Settings and select one, or deselect this model."
-        )
-
     Phi = arrays["phi"]
     d_mm = arrays["size_mm"]
     massp = arrays["weight_pct"]
-
+ 
     valid = ~np.isnan(d_mm) & ~np.isnan(massp) & ~np.isnan(Phi) & (d_mm > 0)
     Phi, d_mm, massp = Phi[valid], d_mm[valid], massp[valid]
     order = np.argsort(Phi)
     Phi, d_mm, massp = Phi[order], d_mm[order], massp[order]
-
+ 
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
         num_raw = massp / (d_mm ** 3)
     num_raw[~np.isfinite(num_raw)] = 0.0
     no_data = num_raw / np.sum(num_raw)
-
+ 
     N_cum = np.cumsum(no_data)
     N_cum = N_cum / N_cum[-1]
-
+ 
     mask = N_cum > 0
     phi_masked = Phi[mask]
     N_masked = N_cum[mask]
