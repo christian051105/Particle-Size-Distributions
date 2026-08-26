@@ -11,26 +11,6 @@ a linear-scale panel (the density bar charts) by sharing layout state.
 Replaces plt.ginput()'s blocking behaviour with a mpl
 'button_press_event' callback, same as before.
 
-TWO INDEPENDENT CLICK PHASES, run in order when each applies, plus ONE
-FULLY AUTOMATIC FIT that needs no clicks at all:
-  Phase "density": click 2 peaks (coarse mode, then fine mode -- order
-    doesn't matter) on the combined overlay page. Fits every selected
-    density model (Bi-Gaussian, Bi-Length Biased Weibull, Bi-Rosin-
-    Rammler PDF) from that SAME pair of clicks.
-  Phase "power_law": click 2 crossover-ish points on the power-law
-    page itself. Fits Bi-power-law from its OWN pair of clicks --
-    deliberately separate from the density models' clicks, since its
-    starting guess is structurally different (a cumulative NUMBER
-    distribution, not a mass density).
-  Bi-Rosin-Rammler-Cumulative (bi_rr_cdf), if selected, fits
-    automatically once the click phases above finish (or immediately,
-    if neither density nor power-law models are selected) -- its
-    starting guess is derived from the shape of the empirical M(>l)/M_T
-    curve itself, with multistart to guard against a poor automatic
-    guess, so no click phase is needed for it.
-Phases only run if a model needing them is selected; the app advances
-straight past any phase with nothing to fit.
-
 Page order:
   1. Combined overlay -- all selected density models plotted together
      on one mass-density page (wt.% vs phi), since they predict the
@@ -41,9 +21,6 @@ Page order:
   4. Bi-Rosin-Rammler-Cumulative's own page (M(>l)/M_T survival curve)
      -- pure review page, never a click target, since it fits itself
      automatically.
-
-When a click phase completes, navigation auto-jumps to the next
-relevant click-target page so the user doesn't have to hunt for it.
 
 Every phi-based page gets a secondary mm axis on top via
 models.add_mm_twin_axis(). Because that twin axis (a twiny()) sits at
