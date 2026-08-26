@@ -276,7 +276,7 @@ class PlotTab(QWidget):
         if kind == "power_law":
             return "Bi-power-law"
         if kind == "rr_cumulative":
-            return "Bi-Rosin-Rammler cumulative (mm + \u03a6)"
+            return "Bi-Rosin-Rammler cumulative"
         return kind
 
     # ---------------------------------------------------------------
