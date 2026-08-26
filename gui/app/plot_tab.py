@@ -696,10 +696,13 @@ class PlotTab(QWidget):
                     lw=2, label=fit_label)
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
-            # No fit yet -- plot the raw empirical M(>l)/M_T curve so
-            # there's something real to click against as a visual
-            # guide, same pattern as the power-law page's pre-fit
-            # preview (rather than leaving the axes blank).
+            # No fit yet (or it failed) -- plot the raw empirical
+            # M(>l)/M_T curve so there's something real to see, same
+            # pattern as the power-law page's pre-fit preview (rather
+            # than leaving the axes blank). Matches the convention
+            # used in fit_worker._fit_bi_rr_cdf: M(>l)/M_T is near 1
+            # at the coarse (low-phi) end and near 0 at the fine
+            # (high-phi) end -- confirmed against a reference plot.
             phi = self.arrays["phi"]
             weight_pct = self.arrays["weight_pct"]
             order = np.argsort(phi)
