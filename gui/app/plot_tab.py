@@ -11,7 +11,8 @@ a linear-scale panel (the density bar charts) by sharing layout state.
 Replaces plt.ginput()'s blocking behaviour with a mpl
 'button_press_event' callback, same as before.
 
-THREE INDEPENDENT CLICK PHASES, run in order when each applies:
+TWO INDEPENDENT CLICK PHASES, run in order when each applies, plus ONE
+FULLY AUTOMATIC FIT that needs no clicks at all:
   Phase "density": click 2 peaks (coarse mode, then fine mode -- order
     doesn't matter) on the combined overlay page. Fits every selected
     density model (Bi-Gaussian, Bi-Length Biased Weibull, Bi-Rosin-
@@ -21,10 +22,12 @@ THREE INDEPENDENT CLICK PHASES, run in order when each applies:
     deliberately separate from the density models' clicks, since its
     starting guess is structurally different (a cumulative NUMBER
     distribution, not a mass density).
-  Phase "rr_cdf": click 2 points (coarse, then fine) directly on the
-    Bi-Rosin-Rammler cumulative page. Fits Bi-Rosin-Rammler-Cumulative
-    independently from the OTHER two phases' clicks, against the
-    empirical M(>l)/M_T survival curve.
+  Bi-Rosin-Rammler-Cumulative (bi_rr_cdf), if selected, fits
+    automatically once the click phases above finish (or immediately,
+    if neither density nor power-law models are selected) -- its
+    starting guess is derived from the shape of the empirical M(>l)/M_T
+    curve itself, with multistart to guard against a poor automatic
+    guess, so no click phase is needed for it.
 Phases only run if a model needing them is selected; the app advances
 straight past any phase with nothing to fit.
 
@@ -36,10 +39,11 @@ Page order:
   3. Bi-power-law's own page (cumulative NUMBER distribution, log-y)
      -- the phase-"power_law" click target when power-law is selected.
   4. Bi-Rosin-Rammler-Cumulative's own page (M(>l)/M_T survival curve)
-     -- the phase-"rr_cdf" click target when selected.
+     -- pure review page, never a click target, since it fits itself
+     automatically.
 
-When a phase completes, navigation auto-jumps to the next relevant
-click-target page so the user doesn't have to hunt for it.
+When a click phase completes, navigation auto-jumps to the next
+relevant click-target page so the user doesn't have to hunt for it.
 
 Every phi-based page gets a secondary mm axis on top via
 models.add_mm_twin_axis(). Because that twin axis (a twiny()) sits at
@@ -102,12 +106,12 @@ class PlotTab(QWidget):
         # -- phase state --------------------------------------------------
         # "density": clicking the overlay page, fits Gaussian/Weibull/RR-PDF.
         # "power_law": clicking the power-law page, fits power-law alone.
-        # "rr_cdf": clicking the RR cumulative page, fits bi_rr_cdf alone.
-        # "done": all applicable phases finished.
+        # "done": all click-driven phases finished. bi_rr_cdf (if
+        # selected) fits automatically, with no click phase of its own,
+        # once the click-driven phases above are done.
         self._phase = "density"
         self.density_clicks = []
         self.power_law_clicks = []
-        self.rr_cdf_clicks = []
         self.ax_click_target = None       # axes the CURRENT phase listens on
         self.ax_click_target_twin = None  # its mm-twin-axis, if any
 
@@ -194,14 +198,13 @@ class PlotTab(QWidget):
         self.output_path = output_path
         self.density_clicks = []
         self.power_law_clicks = []
-        self.rr_cdf_clicks = []
         self._results_by_model = {}
         self._fit_log=[]
         self.results_text.clear()
         self.save_button.setEnabled(False)
         self.continue_button.setVisible(False)
 
-        # start on whichever phase actually applies
+        # start on whichever click-driven phase actually applies
         self._phase = self._first_applicable_phase()
 
         self._panel_specs = self._build_panel_specs()
@@ -209,6 +212,13 @@ class PlotTab(QWidget):
         self._draw_current_page()
         self._update_instructions()
         self._connect_click_handler()
+
+        # bi_rr_cdf needs no clicks -- if there's no click-driven phase
+        # ahead of it (e.g. only Bi-Rosin-Rammler Cumulative was
+        # selected), fit it immediately rather than waiting on a phase
+        # transition that will never come.
+        if self._phase == "done" and self._has_rr_cdf():
+            self._run_auto_rr_cdf_fit()
 
     def _has_power_law(self):
         return "bi_power_law" in self.model_keys
@@ -227,8 +237,6 @@ class PlotTab(QWidget):
             return "density"
         if self._has_power_law():
             return "power_law"
-        if self._has_rr_cdf():
-            return "rr_cdf"
         return "done"
 
     def _connect_click_handler(self):
@@ -243,22 +251,19 @@ class PlotTab(QWidget):
         if self._phase == "density":
             phase_msg = ("Click the peak of each mode on the OVERLAY page "
                           "(2 clicks: coarse mode, then fine mode -- order doesn't matter).")
-            extra_phases = []
             if self._has_power_law():
-                extra_phases.append("Bi-power-law")
+                phase_msg += (" Bi-power-law needs its own 2 clicks afterward -- "
+                               "you'll be moved there automatically.")
             if self._has_rr_cdf():
-                extra_phases.append("Bi-Rosin-Rammler Cumulative")
-            if extra_phases:
-                phase_msg += (f" {' and '.join(extra_phases)} need their own clicks "
-                               "afterward -- you'll be moved there automatically.")
+                phase_msg += (" Bi-Rosin-Rammler Cumulative fits automatically -- "
+                               "no clicks needed for it.")
         elif self._phase == "power_law":
             phase_msg = ("Now click 2 points on the Bi-power-law page "
                           "to set ITS starting guess -- separate from the "
                           "density models' clicks.")
-        elif self._phase == "rr_cdf":
-            phase_msg = ("Now click 2 points on the Bi-Rosin-Rammler "
-                          "Cumulative page (coarse point, then fine point) "
-                          "to set ITS starting guess.")
+            if self._has_rr_cdf():
+                phase_msg += (" Bi-Rosin-Rammler Cumulative fits automatically "
+                               "once this is done -- no clicks needed for it.")
         else:
             phase_msg = "All fits complete. Use Previous/Next to review each page."
 
@@ -283,8 +288,7 @@ class PlotTab(QWidget):
             for key in density_keys:
                 specs.append({"kind": "density_single", "model_key": key})
         if self._has_rr_cdf():
-            specs.append({"kind": "rr_cumulative",
-                           "is_click_target": self._phase == "rr_cdf"})
+            specs.append({"kind": "rr_cumulative", "is_click_target": False})
 
         return specs
 
@@ -395,16 +399,7 @@ class PlotTab(QWidget):
                         markeredgewidth=2, zorder=5)
 
         elif kind == "rr_cumulative":
-            twin = self._render_rr_cumulative(
-                ax, self._results_by_model.get("bi_rr_cdf"),
-                is_click_target=is_target,
-            )
-            if is_target:
-                self.ax_click_target = ax
-                self.ax_click_target_twin = twin
-            for cx, cy in self.rr_cdf_clicks:
-                ax.plot(cx, cy, 'x', color='black', markersize=10,
-                        markeredgewidth=2, zorder=5)
+            self._render_rr_cumulative(ax, self._results_by_model.get("bi_rr_cdf"))
 
         # Reserve space for the overlay page's outside-anchored legend
         # based on its ACTUAL rendered size.
@@ -442,7 +437,6 @@ class PlotTab(QWidget):
     def _reset_clicks(self):
         self.density_clicks = []
         self.power_law_clicks = []
-        self.rr_cdf_clicks = []
         self._results_by_model = {}
         self._fit_log = []
         self.results_text.clear()
@@ -455,13 +449,14 @@ class PlotTab(QWidget):
         self._update_instructions()
         self._connect_click_handler()
 
+        if self._phase == "done" and self._has_rr_cdf():
+            self._run_auto_rr_cdf_fit()
+
     # ---------------------------------------------------------------
     def _current_clicks(self):
         if self._phase == "density":
             return self.density_clicks
-        if self._phase == "power_law":
-            return self.power_law_clicks
-        return self.rr_cdf_clicks
+        return self.power_law_clicks
 
     def _on_canvas_click(self, event):
         if self.ax_click_target is None or event.xdata is None:
@@ -492,12 +487,9 @@ class PlotTab(QWidget):
         if self._phase == "density":
             phase_models = self._density_models()
             clicks = self.density_clicks
-        elif self._phase == "power_law":
+        else:
             phase_models = ["bi_power_law"]
             clicks = self.power_law_clicks
-        else:
-            phase_models = ["bi_rr_cdf"]
-            clicks = self.rr_cdf_clicks
 
         prior_text = self.results_text.toPlainText()
         self.results_text.setPlainText((prior_text + "\n\n" if prior_text else "") + "Fitting...")
@@ -522,39 +514,58 @@ class PlotTab(QWidget):
     def _on_phase_finished(self):
         self.results_text.setPlainText("\n\n".join(self._fit_log))
 
-        # advance to the next phase, if any
+        # advance to the next click-driven phase, if any
         if self._phase == "density":
-            if self._has_power_law():
-                self._phase = "power_law"
-            elif self._has_rr_cdf():
-                self._phase = "rr_cdf"
-            else:
-                self._phase = "done"
-        elif self._phase == "power_law":
-            self._phase = "rr_cdf" if self._has_rr_cdf() else "done"
-        else:  # was "rr_cdf"
+            self._phase = "power_law" if self._has_power_law() else "done"
+        else:  # was "power_law"
             self._phase = "done"
 
-        # rebuild page specs so "is_click_target" reflects the new
-        # phase, then jump to whichever page is now the click target
-        # (or stay put if we're "done")
         self._panel_specs = self._build_panel_specs()
-        '''if self._phase in ("density", "power_law"):
-            self._page_index = self._index_of_click_target_page()'''
         self._draw_current_page()
         self._update_instructions()
 
-        if self._phase in ("power_law", "rr_cdf"):
+        if self._phase == "power_law":
             self._connect_click_handler()
         elif self._phase == "done":
-            if self._results_by_model:
-                self.save_button.setEnabled(True)
-                self.continue_button.setVisible(True)
+            # bi_rr_cdf needs no clicks -- run it automatically now
+            # that the click-driven phases are finished, rather than
+            # making the user click a third page for it.
+            if self._has_rr_cdf():
+                self._run_auto_rr_cdf_fit()
             else:
-                QMessageBox.warning(self, "All fits failed",
-                                     "None of the selected models converged from "
-                                     "these clicks. Try Reset Clicks and click "
-                                     "closer to each mode's true peak.")
+                self._finish_all_fits()
+
+    # ---------------------------------------------------------------
+    def _run_auto_rr_cdf_fit(self):
+        """Fits bi_rr_cdf with no clicks -- its starting guess is
+        derived automatically from the empirical cumulative curve's
+        own shape (see _fit_bi_rr_cdf), with multistart to guard
+        against a poor automatic guess."""
+        prior_text = self.results_text.toPlainText()
+        self.results_text.setPlainText(
+            (prior_text + "\n\n" if prior_text else "") + "Fitting Bi-Rosin-Rammler Cumulative automatically...")
+
+        self._auto_worker = FitWorker(["bi_rr_cdf"], self.arrays, clicks=[])
+        self._auto_worker.model_done.connect(self._on_model_done)
+        self._auto_worker.model_failed.connect(self._on_model_failed)
+        self._auto_worker.all_finished.connect(self._on_auto_rr_cdf_finished)
+        self._auto_worker.start()
+
+    def _on_auto_rr_cdf_finished(self):
+        self.results_text.setPlainText("\n\n".join(self._fit_log))
+        self._panel_specs = self._build_panel_specs()
+        self._draw_current_page()
+        self._finish_all_fits()
+
+    def _finish_all_fits(self):
+        if self._results_by_model:
+            self.save_button.setEnabled(True)
+            self.continue_button.setVisible(True)
+        else:
+            QMessageBox.warning(self, "All fits failed",
+                                 "None of the selected models converged. "
+                                 "Try Reset Clicks and click closer to each "
+                                 "mode's true peak.")
 
     # ---------------------------------------------------------------
     def _render_density_panel(self, ax, phi, weight_pct, model_keys_to_plot, title, is_overlay=False):
