@@ -391,7 +391,16 @@ class PlotTab(QWidget):
                         markeredgewidth=2, zorder=5)
 
         elif kind == "rr_cumulative":
-            self._render_rr_cumulative(ax, self._results_by_model.get("bi_rr"))
+            twin = self._render_rr_cumulative(
+                ax, self._results_by_model.get("bi_rr_cdf"),
+                is_click_target=is_target,
+            )
+            if is_target:
+                self.ax_click_target = ax
+                self.ax_click_target_twin = twin
+            for cx, cy in self.rr_cdf_clicks:
+                ax.plot(cx, cy, 'x', color='black', markersize=10,
+                        markeredgewidth=2, zorder=5)
 
         # Reserve space for the overlay page's outside-anchored legend
         # based on its ACTUAL rendered size.
