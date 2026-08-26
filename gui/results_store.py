@@ -20,19 +20,21 @@ MODEL_PARAM_COLUMNS = {
     "bi_gaussian": ["mu1", "sigma1", "mu2", "sigma2", "p", "BI", "B"],
     "bi_lb_weibull": ["lambda1_mm", "n1", "lambda2_mm", "n2", "q"],
     "bi_power_law": ["lambda_f", "lambda_c", "Df", "Dc"],
-    "bi_rr": ["w", "sigma_coarse_mm", "k_coarse", "sigma_fine_mm", "k_fine", "amp", "R2"],
+    "bi_rr_pdf": ["w", "sigma_coarse_mm", "n_coarse", "lambda_fine_mm", "k_fine", "amp", "R2"],
+    "bi_rr_cdf": ["w", "sigma_coarse_mm", "k_coarse", "sigma_fine_mm", "k_fine", "R2"],
 }
 
 MODEL_LABELS = {
     "bi_gaussian": "BI-GAUSSIAN",
     "bi_lb_weibull": "BI-LENGTH BIASED WEIBULL",
     "bi_power_law": "BI-POWER-LAW",
-    "bi_rr": "BI-ROSIN-RAMMLER",
+    "bi_rr_pdf": "BI-ROSIN-RAMMLER (PDF)",
+    "bi_rr_cdf": "BI-ROSIN-RAMMLER (CUMULATIVE)",
 }
 
 # Preserve a stable block order in the file regardless of the order
 # models happen to get saved in.
-MODEL_ORDER = ["bi_gaussian", "bi_lb_weibull", "bi_power_law", "bi_rr"]
+MODEL_ORDER = ["bi_gaussian", "bi_lb_weibull", "bi_power_law", "bi_rr_pdf", "bi_rr_cdf"]
 
 
 def _block_columns(model):
