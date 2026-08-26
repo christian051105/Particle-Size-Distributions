@@ -68,6 +68,7 @@ CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
 
 
 class PlotTab(QWidget):
+    continue_to_export = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.dataset_label = None
@@ -147,6 +148,10 @@ class PlotTab(QWidget):
         self.save_button.setEnabled(False)
         button_row.addWidget(self.save_button)
         button_row.addStretch()
+        self.continue_button = QPushButton("Continue to Data Export \u2192")
+        self.continue_button.clicked.connect(self.continue_to_export.emit)
+        self.continue_button.setVisible(False)
+        button_row.addWidget(self.continue_button)
         layout.addLayout(button_row)
 
         self.results_text = QTextEdit()
