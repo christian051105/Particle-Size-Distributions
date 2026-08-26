@@ -96,8 +96,28 @@ class HomeTab(QWidget):
                 any_logo_loaded = True
             logo_row.addWidget(logo_label)
         logo_row.addStretch()
+        # -- Citation Information ---------------------------------------------
+        doi_url = "https://DOI.Placeholder" #"https://github.com/christian051105/Particle-Size-Distributions" # 
+        citation_text_html = (
+            "If you use this toolkit for any publications please cite the following paper: "
+            "McKay et al,. (Date), {Placeholder Title/Journal}, doi: "
+            f"<a href=\"{doi_url}\">{doi_url}</a>"
+        )
+        cite_label = QLabel(citation_text_html)
+        cite_label.setWordWrap(True)
+        cite_label.setTextFormat(Qt.TextFormat.RichText)
+        cite_label.setTextInteractionFlags(
+            Qt.TextInteractionFlag.LinksAccessibleByMouse
+            | Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        cite_label.setOpenExternalLinks(True)
+               
+
+
+
 
         layout.addStretch()
+        layout.addWidget(cite_label) 
         layout.addWidget(footer_divider)
         layout.addLayout(logo_row)
 
