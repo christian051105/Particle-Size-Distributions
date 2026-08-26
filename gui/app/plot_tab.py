@@ -539,9 +539,9 @@ class PlotTab(QWidget):
     def _render_power_law_panel(self, ax, result, is_click_target=False):
         ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$N(\geq\Phi)/N_0$')
-        title = 'Bi-power-law (cumulative number distribution)'
+        title = 'Bi-power-law'
         if is_click_target:
-            title += ' -- click here to set starting guess'
+            title += ' -- click crossover(s) (change of direction) to set starting guess'
         ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
         phi = self.arrays["phi"]
         ax.set_xlim(phi.min() - 4, phi.max() + 4)
