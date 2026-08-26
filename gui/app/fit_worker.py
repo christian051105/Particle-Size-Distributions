@@ -245,74 +245,58 @@ def _fit_bi_rr(arrays, clicks):
 # ---------------------------------------------------------------------
 def _bi_rr_cdf(phi, w, sigma1, k1, sigma2, k2):
     """
-    Cumulative 'coarser than' survival function M(>l)/M_T for the
-    bi-Rosin-Rammler distribution, in closed form -- the Rosin-Rammler
-    density integrates analytically, so this is fit directly rather
-    than by numerically integrating a separately-fitted density.
-
-    Each component's survival fraction coarser than diameter l=2^-phi
-    is exp(-(l/sigma)^k) -- the standard Rosin-Rammler survival form.
-    No amplitude term is needed since this is already a 0..1 mass
-    fraction, not a wt.% density.
+    Cumulative 'coarser than' curve M(>l)/M_T for the bi-Rosin-Rammler
+    distribution, in closed form -- the Rosin-Rammler density
+    integrates analytically, so this is fit directly rather than by
+    numerically integrating a separately-fitted density.
     """
     l = 2.0 ** (-phi)
-    surv1 = np.exp(-(l / sigma1) ** k1)
-    surv2 = np.exp(-(l / sigma2) ** k2)
+    surv1 = 1.0 - np.exp(-(l / sigma1) ** k1)
+    surv2 = 1.0 - np.exp(-(l / sigma2) ** k2)
     return w * surv1 + (1.0 - w) * surv2
 
 
 def _fit_bi_rr_cdf(arrays, clicks=None):
     """
-    Independently fits the bi-Rosin-Rammler survival curve M(>l)/M_T
+    Independently fits the bi-Rosin-Rammler cumulative curve M(>l)/M_T
     directly against the empirical cumulative data. Fully automatic --
     no clicks needed. `clicks` is accepted (and ignored) only to keep
     the same call signature as every other MODEL_FIT_FUNCS entry.
-
-    Starting guesses are derived entirely from the shape of the
-    empirical data itself:
-      - sigma1/sigma2 guesses come from where the curve crosses the
-        0.75 and 0.25 quantiles (bracketing each component's
-        characteristic scale without needing a user-picked point).
-      - w guess comes from the curve's value at its flattest point
-        (the plateau between the two components, if one exists) --
-        falls back to 0.5 if the curve has no clear plateau.
-      - k guesses come from the local steepness of the curve near
-        each crossing (steeper transition => larger k).
-    A handful of perturbed multistart attempts are then tried (same
-    defensive pattern as _fit_bi_power_law) and the best-R^2 result
-    is kept, so a single poor automatic guess can't silently produce
-    a degenerate fit.
     """
     phi_data = arrays["phi"]
     wt_pct_norm = arrays["weight_pct"]
 
-    # Empirical cumulative "coarser than" curve, M(>l)/M_T, from the
-    # raw binned data. Larger diameter l == smaller phi, so "coarser
-    # than diameter l" == "phi less than the phi equivalent of l" --
-    # i.e. M(>l)/M_T at a given phi is the cumulative mass fraction
-    # with phi BELOW that value, integrated up from the coarse
-    # (low-phi) end.
+    # Empirical cumulative "coarser than" curve, M(>l)/M_T. Diameter
+    # l = 2^-phi is a DECREASING function of phi, so the coarse end of
+    # the sample sits at very NEGATIVE phi (huge l) and the fine end at
+    # very POSITIVE phi (tiny l). Confirmed against a reference plot:
+    # M(>l)/M_T -> 1 at the coarse (low-phi) end and -> 0 at the fine
+    # (high-phi) end -- i.e. the curve DECREASES as phi increases. This
+    # is 1 minus the cumulative mass fraction from the fine end, i.e.
+    # the cumulative mass fraction STRICTLY COARSER than the current
+    # bin, shifted by one bin so a bin's own mass isn't counted as
+    # "coarser than itself".
     order = np.argsort(phi_data)
     phi_data_sorted = phi_data[order]
     mass_frac_sorted = wt_pct_norm[order] / wt_pct_norm.sum()
     M_gt_l_data = 1.0 - np.cumsum(mass_frac_sorted)
-    # shift so the curve reads "mass coarser than the LEFT edge of
-    # each bin", matching the usual grain-size cumulative convention
     M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
     diam_mm_data = 2.0 ** (-phi_data_sorted)
 
     phi_span = float(phi_data.max() - phi_data.min())
 
     def _phi_at_quantile(q):
-        """phi where the empirical survival curve crosses value q,
-        via linear interpolation against the (monotonically
-        decreasing) data -- np.interp needs increasing x, so flip
-        the decreasing M_gt_l_data/phi pair before interpolating."""
-        # M_gt_l_data decreases as phi increases; reverse for interp
+        """phi where the empirical M(>l)/M_T curve crosses value q.
+        The curve is DECREASING in phi, so reverse both arrays before
+        np.interp, which requires increasing x."""
         m_rev = M_gt_l_data[::-1]
         phi_rev = phi_data_sorted[::-1]
         return float(np.interp(q, m_rev, phi_rev))
 
+    # Since the curve FALLS with phi, the coarse component's
+    # characteristic scale sits nearer the HIGH-quantile crossing
+    # (large M, low/negative phi) and the fine component's nearer the
+    # LOW-quantile crossing (small M, high/positive phi).
     phi_75 = _phi_at_quantile(0.75)
     phi_25 = _phi_at_quantile(0.25)
     phi_50 = _phi_at_quantile(0.50)
@@ -337,6 +321,8 @@ def _fit_bi_rr_cdf(arrays, clicks=None):
     k_guess_coarse = float(np.clip(1.0 + slope_75 * 2.0, 0.5, 10.0))
     k_guess_fine = float(np.clip(1.0 + slope_25 * 2.0, 0.5, 10.0))
 
+    # coarse component (subscript 1) -> high-M/low-phi crossing;
+    # fine component (subscript 2) -> low-M/high-phi crossing
     sigma1_guess = float(np.clip(2.0 ** (-phi_75), 1e-6, 1e6))
     sigma2_guess = float(np.clip(2.0 ** (-phi_25), 1e-6, 1e6))
 
