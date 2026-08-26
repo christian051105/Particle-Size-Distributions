@@ -28,7 +28,8 @@ MODEL_CHOICES = [
     ("Bi-Gaussian", "bi_gaussian"),
     ("Bi-Length Biased Weibull", "bi_lb_weibull"),
     ("Bi-power-law", "bi_power_law"),
-    ("Bi-Rosin-Rammler", "bi_rr"),
+    ("Bi-Rosin-Rammler (PDF)", "bi_rr_pdf"),
+    ("Bi-Rosin-Rammler (Cumulative)", "bi_rr_cdf"),
 ]
 
 NONE_OPTION = "(none)"
