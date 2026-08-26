@@ -409,7 +409,7 @@ MODEL_FIT_FUNCS = {
 MODEL_LABELS = {
     "bi_gaussian": "Bi-Gaussian",
     "bi_lb_weibull": "Bi-Length Biased Weibull",
-    "bi_rr": "Bi-Rosin-Rammler",
+    "bi_rr": "Bi-Weibull",
     "bi_power_law": "Bi-power-law",
 }
 

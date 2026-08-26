@@ -249,13 +249,12 @@ class PlotTab(QWidget):
         if density_keys:
             specs.append({"kind": "overlay", "model_keys": density_keys,
                            "is_click_target": self._phase == "density"})
-            for key in density_keys:
-                specs.append({"kind": "density_single", "model_key": key})
-
         if self._has_power_law():
             specs.append({"kind": "power_law",
                            "is_click_target": self._phase == "power_law"})
-
+        if self.density_clicks:    
+            for key in density_keys:
+                specs.append({"kind": "density_single", "model_key": key})
         if self._has_rr():
             specs.append({"kind": "rr_cumulative"})
 
@@ -276,7 +275,7 @@ class PlotTab(QWidget):
         if kind == "power_law":
             return "Bi-power-law"
         if kind == "rr_cumulative":
-            return "Bi-Rosin-Rammler cumulative"
+            return "Bi-Rosin-Rammler (Cumulative Bi-Weibull) (mm + \u03a6)"
         return kind
 
     # ---------------------------------------------------------------
@@ -488,8 +487,8 @@ class PlotTab(QWidget):
         # phase, then jump to whichever page is now the click target
         # (or stay put if we're "done")
         self._panel_specs = self._build_panel_specs()
-        if self._phase in ("density", "power_law"):
-            self._page_index = self._index_of_click_target_page()
+        '''if self._phase in ("density", "power_law"):
+            self._page_index = self._index_of_click_target_page()'''
         self._draw_current_page()
         self._update_instructions()
 
@@ -612,7 +611,7 @@ class PlotTab(QWidget):
         via the shared models.add_mm_twin_axis helper."""
         ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$M(>l)/M_T$')
-        ax.set_title('Bi-Rosin-Rammler: cumulative view',
+        ax.set_title('Bi-Rosin-Rammler (Cumulative Bi-Weibull)',
                       fontsize=10, fontweight='bold', pad=32)
         ax.grid(alpha=0.3, which='both')
 
