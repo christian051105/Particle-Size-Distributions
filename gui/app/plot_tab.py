@@ -11,19 +11,22 @@ a linear-scale panel (the density bar charts) by sharing layout state.
 Replaces plt.ginput()'s blocking behaviour with a mpl
 'button_press_event' callback, same as before.
 
-TWO INDEPENDENT CLICK PHASES, run in order when both apply:
+THREE INDEPENDENT CLICK PHASES, run in order when each applies:
   Phase "density": click 2 peaks (coarse mode, then fine mode -- order
     doesn't matter) on the combined overlay page. Fits every selected
-    density model (Bi-Gaussian, Bi-Length Biased Weibull, Bi-Rosin-Rammler) from
-    that SAME pair of clicks.
+    density model (Bi-Gaussian, Bi-Length Biased Weibull, Bi-Rosin-
+    Rammler PDF) from that SAME pair of clicks.
   Phase "power_law": click 2 crossover-ish points on the power-law
     page itself. Fits Bi-power-law from its OWN pair of clicks --
     deliberately separate from the density models' clicks, since its
     starting guess is structurally different (a cumulative NUMBER
     distribution, not a mass density).
-If only density models are selected, phase "power_law" is skipped.
-If only power-law is selected, phase "density" is skipped and
-power-law's page is immediately the click target.
+  Phase "rr_cdf": click 2 points (coarse, then fine) directly on the
+    Bi-Rosin-Rammler cumulative page. Fits Bi-Rosin-Rammler-Cumulative
+    independently from the OTHER two phases' clicks, against the
+    empirical M(>l)/M_T survival curve.
+Phases only run if a model needing them is selected; the app advances
+straight past any phase with nothing to fit.
 
 Page order:
   1. Combined overlay -- all selected density models plotted together
@@ -32,8 +35,8 @@ Page order:
   2. One individual page per selected density model.
   3. Bi-power-law's own page (cumulative NUMBER distribution, log-y)
      -- the phase-"power_law" click target when power-law is selected.
-  4. If Bi-Rosin-Rammler is selected: two more pages, the cumulative
-     M(>l)/M_T survival curve vs diameter (log-x) and vs phi.
+  4. Bi-Rosin-Rammler-Cumulative's own page (M(>l)/M_T survival curve)
+     -- the phase-"rr_cdf" click target when selected.
 
 When a phase completes, navigation auto-jumps to the next relevant
 click-target page so the user doesn't have to hunt for it.
@@ -234,6 +237,7 @@ class PlotTab(QWidget):
         self._click_cid = self.canvas.mpl_connect(
             "button_press_event", self._on_canvas_click
         )
+
     def _update_instructions(self):
         model_names = ", ".join(MODEL_LABELS[k] for k in self.model_keys)
         if self._phase == "density":
@@ -654,9 +658,10 @@ class PlotTab(QWidget):
 
     def _render_rr_cumulative(self, ax, result, is_click_target=False):
         """Single combined cumulative-view panel: plotted against phi
-        on the primary (linear) axis, with a secondary mm axis on top.
-        Fed by the bi_rr_cdf fit.
-        """
+        on the primary (linear) axis, matching the convention used on
+        every other page in the app, with a secondary mm axis on top
+        via the shared models.add_mm_twin_axis helper. Fed by the
+        INDEPENDENT bi_rr_cdf fit -- not derived from bi_rr_pdf."""
         ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$M(>l)/M_T$')
         title = 'Bi-Rosin-Rammler (Cumulative)'
@@ -680,10 +685,20 @@ class PlotTab(QWidget):
                     lw=2, label=fit_label)
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
-            ax.text(0.5, 0.5, "No Bi-Rosin-Rammler Cumulative fit yet",
-                    ha='center', va='center', transform=ax.transAxes,
-                    fontsize=9, color='grey')
+            # No fit yet -- plot the raw empirical M(>l)/M_T curve so
+            # there's something real to click against as a visual
+            # guide, same pattern as the power-law page's pre-fit
+            # preview (rather than leaving the axes blank).
             phi = self.arrays["phi"]
+            weight_pct = self.arrays["weight_pct"]
+            order = np.argsort(phi)
+            phi_sorted = phi[order]
+            mass_frac_sorted = weight_pct[order] / weight_pct.sum()
+            M_gt_l_data = 1.0 - np.cumsum(mass_frac_sorted)
+            M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
+            ax.plot(phi_sorted, M_gt_l_data, 'o', color='k',
+                    markersize=5, label='Data (empirical)', zorder=5)
+            ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
             ax.set_xlim(phi.min() - 1, phi.max() + 1)
         return add_mm_twin_axis(ax)
 
