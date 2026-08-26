@@ -328,9 +328,9 @@ class PlotTab(QWidget):
 
         if kind == "overlay":
             density_keys_done = [k for k in self._density_models() if k in self._results_by_model]
-            title = f"{self.dataset_label} -- ALL SELECTED DENSITY MODELS"
+            title = f"{self.dataset_label} -- ALL SELECTED PDF MODELS"
             if is_target:
-                title += " (click here to set starting guess)"
+                title += " (click the peaks to set starting guess)"
             twin = self._render_density_panel(ax, phi, weight_pct, density_keys_done,
                                                title=title, is_overlay=True)
             if is_target:
