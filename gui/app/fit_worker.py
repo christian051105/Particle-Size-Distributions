@@ -14,6 +14,7 @@ from gui.models import (
     bi_gaussian, bi_weibull, weibull_component,
     bi_power_law, log_bi_power_law,
     bi_rr_density, rr_density_phi,
+    bimodality_B,
 )
 
 
@@ -58,6 +59,7 @@ def _fit_bi_gaussian(arrays, clicks):
     rmse = float(np.sqrt(np.mean((mass_frac - y_fit) ** 2)) * 100)
     BI = (np.sqrt(2) * abs(mu2 - mu1) / np.sqrt(sig1 ** 2 + sig2 ** 2)
           * np.sqrt(p * (1.0 - p)))
+    B = bimodality_B(mu1, mu2, sig1, sig2, p)
 
     phi_smooth = np.linspace(phi_labels.min() - 1.0, phi_labels.max() + 1.0, 1000)
     y_total = bi_gaussian(phi_smooth, *popt) * phi_bin_width * 100
@@ -74,12 +76,13 @@ def _fit_bi_gaussian(arrays, clicks):
         f"  sigma2 = {sig2:.3f} Phi   +/- {perr[3]:.3f}\n"
         f"  p      = {p:.4f}        +/- {perr[4]:.4f}\n"
         f"  BI     = {BI:.3f}  ({'bimodal' if BI > 1.1 else 'unimodal'})\n"
+        f"  B      = {B:.3f}\n"
         f"  RMSE   = {rmse:.4f} wt.%"
     )
 
     return {
         "params": {"mu1": mu1, "sigma1": sig1, "mu2": mu2, "sigma2": sig2,
-                    "p": p, "BI": BI},
+                    "p": p, "BI": BI, "B": B},
         "rmse": rmse,
         "phi_smooth": phi_smooth,
         "y_total": y_total,
