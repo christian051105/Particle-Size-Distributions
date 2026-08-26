@@ -97,7 +97,6 @@ class PlotTab(QWidget):
         self.FIGURE_SIZE_IN = (7.5, 5.5)   # one page, generous height for a twin axis + legend
 
         # -- phase state --------------------------------------------------
-        # -- phase state --------------------------------------------------
         # "density": clicking the overlay page, fits Gaussian/Weibull/RR-PDF.
         # "power_law": clicking the power-law page, fits power-law alone.
         # "rr_cdf": clicking the RR cumulative page, fits bi_rr_cdf alone.
