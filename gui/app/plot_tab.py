@@ -652,15 +652,17 @@ class PlotTab(QWidget):
         ax.invert_xaxis()
         return add_mm_twin_axis(ax)
 
-    def _render_rr_cumulative(self, ax, result):
+    def _render_rr_cumulative(self, ax, result, is_click_target=False):
         """Single combined cumulative-view panel: plotted against phi
-        on the primary (linear) axis, matching the convention used on
-        every other page in the app, with a secondary mm axis on top
-        via the shared models.add_mm_twin_axis helper."""
+        on the primary (linear) axis, with a secondary mm axis on top.
+        Fed by the bi_rr_cdf fit.
+        """
         ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$M(>l)/M_T$')
-        ax.set_title('Bi-Rosin-Rammler (Cumulative Bi-Weibull)',
-                      fontsize=10, fontweight='bold', pad=32)
+        title = 'Bi-Rosin-Rammler (Cumulative)'
+        if is_click_target:
+            title += ' -- click coarse then fine point to set starting guess'
+        ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
         ax.grid(alpha=0.3, which='both')
         if result is not None and "rr_cumulative" in result:
             cum = result["rr_cumulative"]
@@ -668,7 +670,7 @@ class PlotTab(QWidget):
             ax.plot(cum["phi_data_sorted"], cum["M_gt_l_data"], 'o', color='k',
                     markersize=5, label='Data (empirical)', zorder=5)
             fit_label = (
-                "Bi-Rosin-Rammler (fitted density)\n"
+                "Bi-Rosin-Rammler (fitted cumulative)\n"
                 f"$\\sigma_c$={params.get('sigma_coarse_mm', float('nan')):.3g} mm, "
                 f"$k_c$={params.get('k_coarse', float('nan')):.2f}\n"
                 f"$\\sigma_f$={params.get('sigma_fine_mm', float('nan')):.3g} mm, "
@@ -678,7 +680,7 @@ class PlotTab(QWidget):
                     lw=2, label=fit_label)
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
-            ax.text(0.5, 0.5, "No Bi-Rosin-Rammler fit yet",
+            ax.text(0.5, 0.5, "No Bi-Rosin-Rammler Cumulative fit yet",
                     ha='center', va='center', transform=ax.transAxes,
                     fontsize=9, color='grey')
             phi = self.arrays["phi"]
