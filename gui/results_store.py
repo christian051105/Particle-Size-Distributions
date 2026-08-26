@@ -17,7 +17,7 @@ METADATA_COLUMNS = ["dataset", "rmse", "entropy_bits", "entropy_norm", "phi_bin_
 # replaces the old single flat PARAM_COLUMNS list -- each model now
 # only ever sees its own columns, never the other three models'.
 MODEL_PARAM_COLUMNS = {
-    "bi_gaussian": ["mu1", "sigma1", "mu2", "sigma2", "p", "BI"],
+    "bi_gaussian": ["mu1", "sigma1", "mu2", "sigma2", "p", "BI", "B"],
     "bi_lb_weibull": ["lambda1_mm", "n1", "lambda2_mm", "n2", "q"],
     "bi_power_law": ["lambda_f", "lambda_c", "Df", "Dc"],
     "bi_rr": ["w", "sigma_coarse_mm", "k_coarse", "sigma_fine_mm", "k_fine", "amp", "R2"],
