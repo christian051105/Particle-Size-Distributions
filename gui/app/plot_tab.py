@@ -85,24 +85,27 @@ class PlotTab(QWidget):
         self.FIT_COLORS = {
             "bi_gaussian": "#377eb8",
             "bi_lb_weibull": '#984ea3',
-            "bi_rr": '#4daf4a',
+            "bi_rr_pdf": '#4daf4a',
         }#Free colorblond safe colors:#8CFF00,#
         self.POP_MARKER_PAIRS = {
             "bi_gaussian": ('dashed', 'dotted'),
             "bi_lb_weibull": ('dashed', 'dotted'),
-            "bi_rr": ('dashed', 'dotted'),
+            "bi_rr_pdf": ('dashed', 'dotted'),
         }
         self.N_CLICKS_REQUIRED = 2
 
         self.FIGURE_SIZE_IN = (7.5, 5.5)   # one page, generous height for a twin axis + legend
 
         # -- phase state --------------------------------------------------
-        # "density": clicking the overlay page, fits Gaussian/Weibull/RR.
+        # -- phase state --------------------------------------------------
+        # "density": clicking the overlay page, fits Gaussian/Weibull/RR-PDF.
         # "power_law": clicking the power-law page, fits power-law alone.
-        # "done": both applicable phases finished (or only one applied).
+        # "rr_cdf": clicking the RR cumulative page, fits bi_rr_cdf alone.
+        # "done": all applicable phases finished.
         self._phase = "density"
         self.density_clicks = []
         self.power_law_clicks = []
+        self.rr_cdf_clicks = []
         self.ax_click_target = None       # axes the CURRENT phase listens on
         self.ax_click_target_twin = None  # its mm-twin-axis, if any
 
@@ -189,6 +192,7 @@ class PlotTab(QWidget):
         self.output_path = output_path
         self.density_clicks = []
         self.power_law_clicks = []
+        self.rr_cdf_clicks = []
         self._results_by_model = {}
         self._fit_log=[]
         self.results_text.clear()
@@ -196,7 +200,7 @@ class PlotTab(QWidget):
         self.continue_button.setVisible(False)
 
         # start on whichever phase actually applies
-        self._phase = "density" if self._density_models() else "power_law"
+        self._phase = self._first_applicable_phase()
 
         self._panel_specs = self._build_panel_specs()
         self._page_index = self._index_of_click_target_page()
