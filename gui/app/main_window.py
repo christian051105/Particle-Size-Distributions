@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
 
         self.home_tab.file_selected.connect(self._on_file_selected)
         self.settings_tab.settings_confirmed.connect(self._on_settings_confirmed)
+        self.plot_tab.continue_to_export.connect(self._on_continue_to_export)
 
     def _on_file_selected(self, path):
         self.settings_tab.load_file(path)
@@ -50,3 +51,6 @@ class MainWindow(QMainWindow):
     def _on_settings_confirmed(self, dataset_label, arrays, model_keys, output_path):
         self.plot_tab.load_settings(dataset_label, arrays, model_keys, output_path)
         self.tabs.setCurrentWidget(self.plot_tab)
+
+    def _on_continue_to_export(self):
+        self.tabs.setCurrentWidget(self.export_tab)
