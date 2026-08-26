@@ -235,19 +235,27 @@ class PlotTab(QWidget):
         self._click_cid = self.canvas.mpl_connect(
             "button_press_event", self._on_canvas_click
         )
-
     def _update_instructions(self):
         model_names = ", ".join(MODEL_LABELS[k] for k in self.model_keys)
         if self._phase == "density":
             phase_msg = ("Click the peak of each mode on the OVERLAY page "
                           "(2 clicks: coarse mode, then fine mode -- order doesn't matter).")
+            extra_phases = []
             if self._has_power_law():
-                phase_msg += (" Bi-power-law needs its own 2 clicks afterward -- "
-                               "you'll be moved there automatically.")
+                extra_phases.append("Bi-power-law")
+            if self._has_rr_cdf():
+                extra_phases.append("Bi-Rosin-Rammler Cumulative")
+            if extra_phases:
+                phase_msg += (f" {' and '.join(extra_phases)} need their own clicks "
+                               "afterward -- you'll be moved there automatically.")
         elif self._phase == "power_law":
             phase_msg = ("Now click 2 points on the Bi-power-law page "
                           "to set ITS starting guess -- separate from the "
                           "density models' clicks.")
+        elif self._phase == "rr_cdf":
+            phase_msg = ("Now click 2 points on the Bi-Rosin-Rammler "
+                          "Cumulative page (coarse point, then fine point) "
+                          "to set ITS starting guess.")
         else:
             phase_msg = "All fits complete. Use Previous/Next to review each page."
 
