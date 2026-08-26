@@ -510,7 +510,7 @@ class PlotTab(QWidget):
         bar_width = 0.90 * self.arrays.get("phi_bin_width", 1.0)
         ax.bar(phi, weight_pct, width=bar_width, color=self.CDATA, alpha=0.55,
                edgecolor='grey', linewidth=0.5, label='Data')
-        ax.set_xlabel('\u03a6')
+        ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel('Mass (wt.%)')
         ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
         ax.set_xlim(phi.min() - 1, phi.max() + 1)
@@ -538,7 +538,7 @@ class PlotTab(QWidget):
         return twin
 
     def _render_power_law_panel(self, ax, result, is_click_target=False):
-        ax.set_xlabel('\u03a6')
+        ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$N(\geq\Phi)/N_0$')
         title = 'Bi-power-law (cumulative number distribution)'
         if is_click_target:
@@ -610,7 +610,7 @@ class PlotTab(QWidget):
         on the primary (linear) axis, matching the convention used on
         every other page in the app, with a secondary mm axis on top
         via the shared models.add_mm_twin_axis helper."""
-        ax.set_xlabel('\u03a6')
+        ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$M(>l)/M_T$')
         ax.set_title('Bi-Rosin-Rammler: cumulative view',
                       fontsize=10, fontweight='bold', pad=32)
