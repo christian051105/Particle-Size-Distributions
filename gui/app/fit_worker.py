@@ -261,12 +261,27 @@ def _bi_rr_cdf(phi, w, sigma1, k1, sigma2, k2):
     return w * surv1 + (1.0 - w) * surv2
 
 
-def _fit_bi_rr_cdf(arrays, clicks):
+def _fit_bi_rr_cdf(arrays, clicks=None):
     """
     Independently fits the bi-Rosin-Rammler survival curve M(>l)/M_T
-    directly against the empirical cumulative data, from its own pair
-    of clicks made on the cumulative page itself (own click phase,
-    same pattern as bi_power_law) -- NOT derived from a bi_rr_pdf fit.
+    directly against the empirical cumulative data. Fully automatic --
+    no clicks needed. `clicks` is accepted (and ignored) only to keep
+    the same call signature as every other MODEL_FIT_FUNCS entry.
+
+    Starting guesses are derived entirely from the shape of the
+    empirical data itself:
+      - sigma1/sigma2 guesses come from where the curve crosses the
+        0.75 and 0.25 quantiles (bracketing each component's
+        characteristic scale without needing a user-picked point).
+      - w guess comes from the curve's value at its flattest point
+        (the plateau between the two components, if one exists) --
+        falls back to 0.5 if the curve has no clear plateau.
+      - k guesses come from the local steepness of the curve near
+        each crossing (steeper transition => larger k).
+    A handful of perturbed multistart attempts are then tried (same
+    defensive pattern as _fit_bi_power_law) and the best-R^2 result
+    is kept, so a single poor automatic guess can't silently produce
+    a degenerate fit.
     """
     phi_data = arrays["phi"]
     wt_pct_norm = arrays["weight_pct"]
@@ -286,60 +301,113 @@ def _fit_bi_rr_cdf(arrays, clicks):
     M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
     diam_mm_data = 2.0 ** (-phi_data_sorted)
 
-    # clicks here are 2 points picked directly on the cumulative curve
-    # (phi, M_gt_l value) -- coarse click first or fine click first,
-    # order doesn't matter; sort by phi same as the density-phase clicks.
-    (phi_coarse, m_coarse), (phi_fine, m_fine) = sorted(clicks, key=lambda pt: pt[0])
-
-    # Starting sigma guesses are derived from where the DATA itself
-    # crosses M(>l)/M_T = 0.5 nearest each click, rather than a raw
-    # 2^-phi(click) conversion -- clicking near the y-axis extremes
-    # (as users naturally do, to grab each population's plateau)
-    # otherwise produces sigma guesses far outside the data's actual
-    # transition, which previously let curve_fit collapse onto a
-    # degenerate flat solution pinned at the parameter bounds.
     phi_span = float(phi_data.max() - phi_data.min())
 
-    def _phi_at_half_mass_near(phi_click):
-        # index of the data point closest to the click's phi position
-        i0 = int(np.argmin(np.abs(phi_data_sorted - phi_click)))
-        # search outward from there for the nearest crossing of 0.5
-        diffs = M_gt_l_data - 0.5
-        sign0 = np.sign(diffs[i0]) or 1.0
-        for i in range(len(diffs)):
-            lo = max(i0 - i, 0)
-            hi = min(i0 + i, len(diffs) - 1)
-            if np.sign(diffs[lo]) != sign0 or np.sign(diffs[hi]) != sign0:
-                return float(phi_data_sorted[lo if np.sign(diffs[lo]) != sign0 else hi])
-        return phi_click  # no crossing found -- fall back to the click itself
+    def _phi_at_quantile(q):
+        """phi where the empirical survival curve crosses value q,
+        via linear interpolation against the (monotonically
+        decreasing) data -- np.interp needs increasing x, so flip
+        the decreasing M_gt_l_data/phi pair before interpolating."""
+        # M_gt_l_data decreases as phi increases; reverse for interp
+        m_rev = M_gt_l_data[::-1]
+        phi_rev = phi_data_sorted[::-1]
+        return float(np.interp(q, m_rev, phi_rev))
 
-    phi_mode_coarse = _phi_at_half_mass_near(phi_coarse)
-    phi_mode_fine = _phi_at_half_mass_near(phi_fine)
+    phi_75 = _phi_at_quantile(0.75)
+    phi_25 = _phi_at_quantile(0.25)
+    phi_50 = _phi_at_quantile(0.50)
 
-    sigma1_guess = float(np.clip(2.0 ** (-phi_mode_coarse), 1e-3, 1e3))
-    sigma2_guess = float(np.clip(2.0 ** (-phi_mode_fine), 1e-3, 1e3))
-    w_guess = float(np.clip(m_coarse, 0.05, 0.95))
+    # local steepness near each crossing, from the empirical curve's
+    # own slope -- steeper => higher k. Guard against zero/negative
+    # dphi from duplicate or unsorted points.
+    def _local_slope(phi_at, window=None):
+        window = window or max(phi_span * 0.05, 1e-6)
+        mask = np.abs(phi_data_sorted - phi_at) <= window
+        if mask.sum() < 2:
+            return 1.0
+        xs = phi_data_sorted[mask]
+        ys = M_gt_l_data[mask]
+        dphi = xs.max() - xs.min()
+        if dphi <= 1e-9:
+            return 1.0
+        return float(abs((ys[np.argmax(xs)] - ys[np.argmin(xs)]) / dphi))
 
-    p0 = [w_guess, sigma1_guess, 2.0, sigma2_guess, 2.0]
-    # Bounds scaled to the dataset's own phi range (via 2^-phi) rather
-    # than fixed [1e-4, 50] mm -- fixed bounds let sigma/k collapse
-    # onto an arbitrary wall far from any physically sensible value
-    # for datasets whose actual size range sits elsewhere.
+    slope_75 = _local_slope(phi_75)
+    slope_25 = _local_slope(phi_25)
+    k_guess_coarse = float(np.clip(1.0 + slope_75 * 2.0, 0.5, 10.0))
+    k_guess_fine = float(np.clip(1.0 + slope_25 * 2.0, 0.5, 10.0))
+
+    sigma1_guess = float(np.clip(2.0 ** (-phi_75), 1e-6, 1e6))
+    sigma2_guess = float(np.clip(2.0 ** (-phi_25), 1e-6, 1e6))
+
+    # w guess from the curve's value at its flattest (lowest-slope)
+    # point in the middle of the phi range -- approximates the
+    # plateau height, i.e. the coarse population's mass fraction.
+    # Falls back to 0.5 if no clear interior plateau exists.
+    interior = (phi_data_sorted > phi_data_sorted.min() + 0.1 * phi_span) & \
+               (phi_data_sorted < phi_data_sorted.max() - 0.1 * phi_span)
+    if interior.sum() >= 3:
+        interior_phi = phi_data_sorted[interior]
+        interior_m = M_gt_l_data[interior]
+        grad = np.abs(np.gradient(interior_m, interior_phi))
+        w_guess = float(np.clip(interior_m[np.argmin(grad)], 0.05, 0.95))
+    else:
+        w_guess = 0.5
+
+    p0_base = [w_guess, sigma1_guess, k_guess_coarse, sigma2_guess, k_guess_fine]
+
+    # Bounds scaled to the dataset's own phi range rather than a fixed
+    # mm window -- fixed bounds let sigma/k collapse onto an arbitrary
+    # wall far from any physically sensible value for datasets whose
+    # actual size range sits elsewhere.
     sigma_lo = float(np.clip(2.0 ** (-(phi_data.max() + phi_span)), 1e-6, 1e-3))
     sigma_hi = float(np.clip(2.0 ** (-(phi_data.min() - phi_span)), 1e3, 1e6))
     lower = [0.0, sigma_lo, 0.3, sigma_lo, 0.3]
     upper = [1.0, sigma_hi, 15.0, sigma_hi, 15.0]
-    p0 = list(np.clip(p0, lower, upper))
+    p0_base = list(np.clip(p0_base, lower, upper))
 
-    popt, pcov = curve_fit(
-        _bi_rr_cdf, phi_data_sorted, M_gt_l_data,
-        p0=p0, bounds=(lower, upper), maxfev=50000
-    )
-    w_fit, sigma1_fit, k1_fit, sigma2_fit, k2_fit = popt
-    fit_vals = _bi_rr_cdf(phi_data_sorted, *popt)
-    ss_res = np.sum((M_gt_l_data - fit_vals) ** 2)
     ss_tot = np.sum((M_gt_l_data - M_gt_l_data.mean()) ** 2)
-    r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else float("nan")
+
+    rng = np.random.default_rng(0)
+    n_trials = 12
+    best_r2 = -np.inf
+    best_popt = None
+    best_pcov = None
+
+    for trial in range(n_trials):
+        if trial == 0:
+            p0_trial = p0_base
+        else:
+            factors = rng.uniform(0.5, 1.8, size=5)
+            p0_trial = list(np.clip(np.array(p0_base) * factors, lower, upper))
+
+        try:
+            popt_trial, pcov_trial = curve_fit(
+                _bi_rr_cdf, phi_data_sorted, M_gt_l_data,
+                p0=p0_trial, bounds=(lower, upper), maxfev=50000
+            )
+        except RuntimeError:
+            continue
+
+        fit_vals_trial = _bi_rr_cdf(phi_data_sorted, *popt_trial)
+        if not np.all(np.isfinite(fit_vals_trial)):
+            continue
+        ss_res_trial = np.sum((M_gt_l_data - fit_vals_trial) ** 2)
+        r2_trial = float(1 - ss_res_trial / ss_tot) if ss_tot > 0 else float("nan")
+
+        if r2_trial > best_r2:
+            best_r2 = r2_trial
+            best_popt = popt_trial
+            best_pcov = pcov_trial
+
+    if best_popt is None:
+        raise RuntimeError(
+            "All multistart attempts failed to converge for the "
+            "Bi-Rosin-Rammler Cumulative fit."
+        )
+
+    popt, pcov, r2 = best_popt, best_pcov, best_r2
+    w_fit, sigma1_fit, k1_fit, sigma2_fit, k2_fit = popt
     perr = np.sqrt(np.diag(pcov))
     w_err, s1_err, k1_err, s2_err, k2_err = perr
 
@@ -367,7 +435,7 @@ def _fit_bi_rr_cdf(arrays, clicks):
     }
 
     summary = (
-        f"BI-ROSIN-RAMMLER FIT (CUMULATIVE, independent fit)\n"
+        f"BI-ROSIN-RAMMLER FIT (CUMULATIVE, automatic, best of {n_trials} attempts)\n"
         f"  w (coarse mass fraction) = {w_fit:.4f} +/- {w_err:.4f}\n"
         f"  sigma_coarse = {sigma1_fit:.5f} mm (phi={phi1_mode:.3f})  +/- {s1_err:.5f}\n"
         f"  k_coarse     = {k1_fit:.4f}  +/- {k1_err:.4f}\n"
@@ -520,9 +588,11 @@ MODEL_LABELS = {
 
 class FitWorker(QThread):
     """
-    Fits every model in model_keys from the same pair of clicks.
-    Emits progress per-model as each finishes (so partial results show
-    up even if one model fails), then a final all_finished signal.
+    Fits every model in model_keys from the same set of clicks (pass
+    an empty list for click-free models like bi_rr_cdf, which derives
+    its own starting guess automatically). Emits progress per-model as
+    each finishes (so partial results show up even if one model
+    fails), then a final all_finished signal.
     """
     model_done = pyqtSignal(str, dict)     # (model_key, result)
     model_failed = pyqtSignal(str, str)    # (model_key, message)
