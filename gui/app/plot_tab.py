@@ -193,6 +193,7 @@ class PlotTab(QWidget):
         self._fit_log=[]
         self.results_text.clear()
         self.save_button.setEnabled(False)
+        self.continue_button.setVisible(False)
 
         # start on whichever phase actually applies
         self._phase = "density" if self._density_models() else "power_law"
@@ -409,6 +410,7 @@ class PlotTab(QWidget):
         self._fit_log = []
         self.results_text.clear()
         self.save_button.setEnabled(False)
+        self.continue_button.setVisible(False)
         self._phase = "density" if self._density_models() else "power_law"
         self._panel_specs = self._build_panel_specs()
         self._page_index = self._index_of_click_target_page()
@@ -496,6 +498,7 @@ class PlotTab(QWidget):
         elif self._phase == "done":
             if self._results_by_model:
                 self.save_button.setEnabled(True)
+                self.continue_button.setVisible(True)
             else:
                 QMessageBox.warning(self, "All fits failed",
                                      "None of the selected models converged from "
