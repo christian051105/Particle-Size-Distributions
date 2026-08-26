@@ -211,11 +211,23 @@ class PlotTab(QWidget):
     def _has_power_law(self):
         return "bi_power_law" in self.model_keys
 
-    def _has_rr(self):
-        return "bi_rr" in self.model_keys
+    def _has_rr_pdf(self):
+        return "bi_rr_pdf" in self.model_keys
+
+    def _has_rr_cdf(self):
+        return "bi_rr_cdf" in self.model_keys
 
     def _density_models(self):
-        return [k for k in self.model_keys if k != "bi_power_law"]
+        return [k for k in self.model_keys if k not in ("bi_power_law", "bi_rr_cdf")]
+
+    def _first_applicable_phase(self):
+        if self._density_models():
+            return "density"
+        if self._has_power_law():
+            return "power_law"
+        if self._has_rr_cdf():
+            return "rr_cdf"
+        return "done"
 
     def _connect_click_handler(self):
         if self._click_cid is not None:
