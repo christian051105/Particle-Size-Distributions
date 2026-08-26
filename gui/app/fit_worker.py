@@ -162,7 +162,7 @@ def _fit_bi_weibull(arrays, clicks):
 
 
 # ---------------------------------------------------------------------
-# Bi-Rosin-Rammler
+# Bi-Rosin-Rammler -- PDF (density fit only; no cumulative here)
 # ---------------------------------------------------------------------
 def _fit_bi_rr(arrays, clicks):
     phi_data = arrays["phi"]
@@ -173,7 +173,7 @@ def _fit_bi_rr(arrays, clicks):
     # coarse first, fine second. Our clicks come in whatever order the user
     # clicked, so sort by phi (fine phi is numerically larger) to guarantee
     # coarse-then-fine regardless of click order.
-    
+
     (phi_coarse, y_coarse), (phi_fine, y_fine) = sorted(clicks, key=lambda pt: pt[0])
 
     sigma1_guess = 2.0 ** (-phi_coarse)
@@ -263,7 +263,7 @@ def _bi_rr_cdf(phi, w, sigma1, k1, sigma2, k2):
 
 def _fit_bi_rr_cdf(arrays, clicks):
     """
-    Independently fits the bi-Rosin-Rammler curve M(>l)/M_T
+    Independently fits the bi-Rosin-Rammler survival curve M(>l)/M_T
     directly against the empirical cumulative data, from its own pair
     of clicks made on the cumulative page itself (own click phase,
     same pattern as bi_power_law) -- NOT derived from a bi_rr_pdf fit.
@@ -271,7 +271,12 @@ def _fit_bi_rr_cdf(arrays, clicks):
     phi_data = arrays["phi"]
     wt_pct_norm = arrays["weight_pct"]
 
-
+    # Empirical cumulative "coarser than" curve, M(>l)/M_T, from the
+    # raw binned data. Larger diameter l == smaller phi, so "coarser
+    # than diameter l" == "phi less than the phi equivalent of l" --
+    # i.e. M(>l)/M_T at a given phi is the cumulative mass fraction
+    # with phi BELOW that value, integrated up from the coarse
+    # (low-phi) end.
     order = np.argsort(phi_data)
     phi_data_sorted = phi_data[order]
     mass_frac_sorted = wt_pct_norm[order] / wt_pct_norm.sum()
@@ -286,13 +291,44 @@ def _fit_bi_rr_cdf(arrays, clicks):
     # order doesn't matter; sort by phi same as the density-phase clicks.
     (phi_coarse, m_coarse), (phi_fine, m_fine) = sorted(clicks, key=lambda pt: pt[0])
 
-    sigma1_guess = 2.0 ** (-phi_coarse)
-    sigma2_guess = 2.0 ** (-phi_fine)
+    # Starting sigma guesses are derived from where the DATA itself
+    # crosses M(>l)/M_T = 0.5 nearest each click, rather than a raw
+    # 2^-phi(click) conversion -- clicking near the y-axis extremes
+    # (as users naturally do, to grab each population's plateau)
+    # otherwise produces sigma guesses far outside the data's actual
+    # transition, which previously let curve_fit collapse onto a
+    # degenerate flat solution pinned at the parameter bounds.
+    phi_span = float(phi_data.max() - phi_data.min())
+
+    def _phi_at_half_mass_near(phi_click):
+        # index of the data point closest to the click's phi position
+        i0 = int(np.argmin(np.abs(phi_data_sorted - phi_click)))
+        # search outward from there for the nearest crossing of 0.5
+        diffs = M_gt_l_data - 0.5
+        sign0 = np.sign(diffs[i0]) or 1.0
+        for i in range(len(diffs)):
+            lo = max(i0 - i, 0)
+            hi = min(i0 + i, len(diffs) - 1)
+            if np.sign(diffs[lo]) != sign0 or np.sign(diffs[hi]) != sign0:
+                return float(phi_data_sorted[lo if np.sign(diffs[lo]) != sign0 else hi])
+        return phi_click  # no crossing found -- fall back to the click itself
+
+    phi_mode_coarse = _phi_at_half_mass_near(phi_coarse)
+    phi_mode_fine = _phi_at_half_mass_near(phi_fine)
+
+    sigma1_guess = float(np.clip(2.0 ** (-phi_mode_coarse), 1e-3, 1e3))
+    sigma2_guess = float(np.clip(2.0 ** (-phi_mode_fine), 1e-3, 1e3))
     w_guess = float(np.clip(m_coarse, 0.05, 0.95))
 
-    p0 = [w_guess, sigma1_guess, 4.0, sigma2_guess, 4.0]
-    lower = [0.0, 1e-4, 0.3, 1e-4, 0.3]
-    upper = [1.0, 50.0, 15.0, 50.0, 15.0]
+    p0 = [w_guess, sigma1_guess, 2.0, sigma2_guess, 2.0]
+    # Bounds scaled to the dataset's own phi range (via 2^-phi) rather
+    # than fixed [1e-4, 50] mm -- fixed bounds let sigma/k collapse
+    # onto an arbitrary wall far from any physically sensible value
+    # for datasets whose actual size range sits elsewhere.
+    sigma_lo = float(np.clip(2.0 ** (-(phi_data.max() + phi_span)), 1e-6, 1e-3))
+    sigma_hi = float(np.clip(2.0 ** (-(phi_data.min() - phi_span)), 1e3, 1e6))
+    lower = [0.0, sigma_lo, 0.3, sigma_lo, 0.3]
+    upper = [1.0, sigma_hi, 15.0, sigma_hi, 15.0]
     p0 = list(np.clip(p0, lower, upper))
 
     popt, pcov = curve_fit(
