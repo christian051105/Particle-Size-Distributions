@@ -1,15 +1,15 @@
-
 """
 gui/app/export_tab.py
 ==================
-Fourth tab: "Data Export". Lets the user export
+Fifth tab: "Data Export". Lets the user export
 
   1. The saved fit-results CSV (whatever is currently on disk at the
      Settings-tab-confirmed output path -- i.e. the same file
      Save All Fits to Results File writes to).
   2. The currently-fitted plot pages as PNG images -- either just the
-     page currently shown on the Plot & Fit tab, or every page in one
-     go, each saved as its own file (dataset_label + page title).
+     page currently shown on the Plot & Fit (Results) tab, or every
+     page in one go, each saved as its own file (dataset_label + page
+     title).
 """
 
 import os
@@ -27,7 +27,8 @@ class ExportTab(QWidget):
         super().__init__(parent)
         # Reference to the live PlotTab instance so we can read its
         # current figure/panel_specs/results on demand -- no data is
-        # duplicated here.
+        # duplicated here. PlotTab itself holds a reference to
+        # InteractiveTab for fit state (output_path, dataset_label).
         self.plot_tab = plot_tab
         self.output_csv_path = RESULTS_PATH
 
@@ -109,7 +110,8 @@ class ExportTab(QWidget):
         self._refresh_page_list()
 
     def _refresh_csv_status(self):
-        path = getattr(self.plot_tab, "output_path", None) or RESULTS_PATH
+        it = getattr(self.plot_tab, "interactive_tab", None)
+        path = getattr(it, "output_path", None) or RESULTS_PATH
         self.output_csv_path = path
         if os.path.exists(path):
             size_kb = os.path.getsize(path) / 1024.0
@@ -192,7 +194,8 @@ class ExportTab(QWidget):
             QMessageBox.warning(self, "Could not create folder", str(e))
             return
 
-        dataset_label = getattr(self.plot_tab, "dataset_label", None) or "dataset"
+        it = getattr(self.plot_tab, "interactive_tab", None)
+        dataset_label = getattr(it, "dataset_label", None) or "dataset"
         original_page_index = self.plot_tab._page_index
 
         saved_files, failed = [], []
