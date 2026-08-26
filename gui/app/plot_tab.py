@@ -424,7 +424,11 @@ class PlotTab(QWidget):
 
     # ---------------------------------------------------------------
     def _current_clicks(self):
-        return self.density_clicks if self._phase == "density" else self.power_law_clicks
+        if self._phase == "density":
+            return self.density_clicks
+        if self._phase == "power_law":
+            return self.power_law_clicks
+        return self.rr_cdf_clicks
 
     def _on_canvas_click(self, event):
         if self.ax_click_target is None or event.xdata is None:
