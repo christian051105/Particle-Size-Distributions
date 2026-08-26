@@ -120,7 +120,7 @@ def add_mm_twin_axis(ax):
     ax_mm.set_xlim(ax.get_xlim())
     ax_mm.set_xticks(phi_ticks)
     ax_mm.set_xticklabels([f"$10^{{{k}}}$" for k in k_values], fontsize=8)
-    ax_mm.set_xlabel("Grain Diameter (mm)", fontsize=9, labelpad=4)
+    ax_mm.set_xlabel("Particle Diameter (mm)", fontsize=9, labelpad=4)
     return ax_mm
 
 
