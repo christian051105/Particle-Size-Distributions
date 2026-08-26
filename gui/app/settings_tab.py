@@ -81,12 +81,12 @@ class SettingsTab(QWidget):
         self.size_combo = QComboBox()
         self.weight_combo = QComboBox()
         self.size_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
-        mapping_form.addRow("Grain size column:", self.size_combo)
+        mapping_form.addRow("Particle size column:", self.size_combo)
  
         self.size_type_combo = QComboBox()
         self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
         self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
-        mapping_form.addRow("Grain size column is in:", self.size_type_combo)
+        mapping_form.addRow("Particle size column is in:", self.size_type_combo)
  
         mapping_form.addRow("Weight / mass column:", self.weight_combo)
         layout.addWidget(mapping_box)
