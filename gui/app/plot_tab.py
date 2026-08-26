@@ -519,9 +519,16 @@ class PlotTab(QWidget):
         self.results_text.setPlainText("\n\n".join(self._fit_log))
 
         # advance to the next phase, if any
-        if self._phase == "density" and self._has_power_law():
-            self._phase = "power_law"
-        else:
+        if self._phase == "density":
+            if self._has_power_law():
+                self._phase = "power_law"
+            elif self._has_rr_cdf():
+                self._phase = "rr_cdf"
+            else:
+                self._phase = "done"
+        elif self._phase == "power_law":
+            self._phase = "rr_cdf" if self._has_rr_cdf() else "done"
+        else:  # was "rr_cdf"
             self._phase = "done"
 
         # rebuild page specs so "is_click_target" reflects the new
@@ -533,7 +540,7 @@ class PlotTab(QWidget):
         self._draw_current_page()
         self._update_instructions()
 
-        if self._phase == "power_law":
+        if self._phase in ("power_law", "rr_cdf"):
             self._connect_click_handler()
         elif self._phase == "done":
             if self._results_by_model:
