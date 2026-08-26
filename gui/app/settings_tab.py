@@ -119,7 +119,7 @@ class SettingsTab(QWidget):
         ))
         self.model_checkboxes = {}
 
-        CDF_MODEL_KEYS = {"bi_power_law"}
+        CDF_MODEL_KEYS = {"bi_power_law", "bi_rr_cdf"}
 
         pdf_header = QLabel("<b>PDF models</b>")
         model_box_layout.addWidget(pdf_header)
