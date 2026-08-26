@@ -614,13 +614,20 @@ class PlotTab(QWidget):
         ax.set_title('Bi-Rosin-Rammler (Cumulative Bi-Weibull)',
                       fontsize=10, fontweight='bold', pad=32)
         ax.grid(alpha=0.3, which='both')
-
         if result is not None and "rr_cumulative" in result:
             cum = result["rr_cumulative"]
+            params = result.get("params", {})
             ax.plot(cum["phi_data_sorted"], cum["M_gt_l_data"], 'o', color='k',
                     markersize=5, label='Data (empirical)', zorder=5)
+            fit_label = (
+                "Bi-Rosin-Rammler (fitted density)\n"
+                f"$\\sigma_c$={params.get('sigma_coarse_mm', float('nan')):.3g} mm, "
+                f"$k_c$={params.get('k_coarse', float('nan')):.2f}\n"
+                f"$\\sigma_f$={params.get('sigma_fine_mm', float('nan')):.3g} mm, "
+                f"$k_f$={params.get('k_fine', float('nan')):.2f}"
+            )
             ax.plot(cum["phi_fit_sorted"], cum["M_gt_l_fit"], '-', color='crimson',
-                    lw=2, label='Bi-Rosin-Rammler (fitted density)')
+                    lw=2, label=fit_label)
             ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
         else:
             ax.text(0.5, 0.5, "No Bi-Rosin-Rammler fit yet",
@@ -628,41 +635,8 @@ class PlotTab(QWidget):
                     fontsize=9, color='grey')
             phi = self.arrays["phi"]
             ax.set_xlim(phi.min() - 1, phi.max() + 1)
-
         return add_mm_twin_axis(ax)
 
-    @staticmethod
-    def _add_phi_twin_axis_on_mm(ax):
-        """Secondary top x-axis in phi, for a panel whose primary
-        x-axis is diameter in mm (log scale). Mirrors
-        models.add_mm_twin_axis's approach (round, human-readable tick
-        positions rather than a raw linear mapping) but in the
-        opposite direction: phi ticks at whole-phi integers, positioned
-        via mm = 2**-phi onto the log-mm primary axis.
-        """
-        mm_lo, mm_hi = ax.get_xlim()
-        mm_min, mm_max = min(mm_lo, mm_hi), max(mm_lo, mm_hi)
-        if mm_min <= 0 or mm_max <= 0:
-            return None
-
-        phi_min = -np.log2(mm_max)
-        phi_max = -np.log2(mm_min)
-        phi_lo_tick = int(np.floor(round(phi_min, 6)))
-        phi_hi_tick = int(np.ceil(round(phi_max, 6)))
-        phi_ticks = list(range(phi_lo_tick, phi_hi_tick + 1))
-        mm_ticks = [2.0 ** (-p) for p in phi_ticks]
-
-        ax_phi = ax.twiny()
-        ax_phi.set_xscale('log')
-        ax_phi.set_xticks(mm_ticks)
-        ax_phi.set_xticklabels([f"{p:+d}" for p in phi_ticks], fontsize=8)
-        ax_phi.set_xlabel('\u03a6', fontsize=9, labelpad=4)
-        # set xlim AFTER ticks -- set_xticks can otherwise let
-        # matplotlib auto-expand the range to fit an edge tick,
-        # desyncing this twin axis from the primary axis it's meant
-        # to mirror exactly.
-        ax_phi.set_xlim(ax.get_xlim())
-        return ax_phi
 
     # ---------------------------------------------------------------
     def _on_save(self):
