@@ -409,12 +409,13 @@ class PlotTab(QWidget):
     def _reset_clicks(self):
         self.density_clicks = []
         self.power_law_clicks = []
+        self.rr_cdf_clicks = []
         self._results_by_model = {}
         self._fit_log = []
         self.results_text.clear()
         self.save_button.setEnabled(False)
         self.continue_button.setVisible(False)
-        self._phase = "density" if self._density_models() else "power_law"
+        self._phase = self._first_applicable_phase()
         self._panel_specs = self._build_panel_specs()
         self._page_index = self._index_of_click_target_page()
         self._draw_current_page()
