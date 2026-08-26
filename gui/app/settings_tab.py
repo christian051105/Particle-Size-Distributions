@@ -93,7 +93,7 @@ class SettingsTab(QWidget):
 
 
         # --- bin width ---------------------------------------------------
-        bin_box = QGroupBox("3. Grain diameter bin width (phi)")
+        bin_box = QGroupBox("3. Particle diameter bin width (phi)")
         bin_layout = QHBoxLayout(bin_box)
         bin_layout.addWidget(QLabel(
             "Needed so entropy is comparable across datasets."
