@@ -117,10 +117,26 @@ class SettingsTab(QWidget):
             "the same two peak clicks on the next tab."
         ))
         self.model_checkboxes = {}
+
+        CDF_MODEL_KEYS = {"bi_power_law"}
+
+        pdf_header = QLabel("<b>PDF models</b>")
+        model_box_layout.addWidget(pdf_header)
         for label, key in MODEL_CHOICES:
+            if key in CDF_MODEL_KEYS:
+                continue
             cb = QCheckBox(label)
             if key == "bi_gaussian":
                 cb.setChecked(True)
+            self.model_checkboxes[key] = cb
+            model_box_layout.addWidget(cb)
+
+        cdf_header = QLabel("<b>CDF models</b>")
+        model_box_layout.addWidget(cdf_header)
+        for label, key in MODEL_CHOICES:
+            if key not in CDF_MODEL_KEYS:
+                continue
+            cb = QCheckBox(label)
             self.model_checkboxes[key] = cb
             model_box_layout.addWidget(cb)
 
