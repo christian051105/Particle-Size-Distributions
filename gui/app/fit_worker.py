@@ -213,51 +213,8 @@ def _fit_bi_rr(arrays, clicks):
     y_pop1 = amp_fit * w_fit * rr_density_phi(phi_smooth, lambda1_fit, n1_fit)
     y_pop2 = amp_fit * (1 - w_fit) * rr_density_phi(phi_smooth, lambda2_fit, n2_fit)
 
-    # -------------------------------------------------------------
-    # Cumulative "coarser than" survival curve, M(>l)/M_T, for the
-    # cumulative-view pages. Larger diameter l == smaller phi, so
-    # "coarser than diameter l" == "phi less than the phi equivalent
-    # of l" -- i.e. M(>l)/M_T at a given phi is the cumulative mass
-    # fraction with phi BELOW that value, integrated up from the
-    # coarse (low-phi) end.
-    # -------------------------------------------------------------
-  
-    # Empirical curve, from the raw binned data.
-    order = np.argsort(phi_data)
-    phi_data_sorted = phi_data[order]
-    mass_frac_sorted = (wt_pct_norm[order] / wt_pct_norm.sum())
-    M_gt_l_data = 1.0 - np.cumsum(mass_frac_sorted)
-    # shift so the curve reads "mass coarser than the LEFT edge of
-    # each bin", matching the usual grain-size cumulative convention
-    M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
-    diam_mm_data = 2.0 ** (-phi_data_sorted)
-
-    # Fitted curve, from the smooth fitted density via cumulative
-    # trapezoidal integration (normalized so total mass = 1).
-    y_total_frac = y_total * phi_bin_width
-    _trapz = getattr(np, "trapezoid", None) or np.trapz
-    total_mass = _trapz(y_total_frac, phi_smooth)
-    if total_mass > 0:
-        cum_from_coarse = np.concatenate(
-            ([0.0], np.cumsum((y_total_frac[1:] + y_total_frac[:-1]) / 2.0
-                              * np.diff(phi_smooth)))
-        ) / total_mass
-        M_gt_l_fit = 1.0 - cum_from_coarse
-    else:
-        M_gt_l_fit = np.ones_like(phi_smooth)
-    diam_mm_fit = 2.0 ** (-phi_smooth)
-
-    rr_cumulative = {
-        "phi_data_sorted": phi_data_sorted,
-        "diam_mm_data": diam_mm_data,
-        "M_gt_l_data": M_gt_l_data,
-        "phi_fit_sorted": phi_smooth,
-        "diam_mm_fit": diam_mm_fit,
-        "M_gt_l_fit": M_gt_l_fit,
-    }
-
     summary = (
-        f"BI-ROSIN-RAMMLER FIT\n"
+        f"BI-ROSIN-RAMMLER FIT (PDF)\n"
         f"  w (coarse mass fraction) = {w_fit:.4f} +/- {w_err:.4f}\n"
         f"  lambda_coarse = {lambda1_fit:.5f} mm (phi={phi1_mode:.3f})  +/- {s1_err:.5f}\n"
         f"  n_coarse     = {n1_fit:.4f}  +/- {k1_err:.4f}\n"
@@ -279,7 +236,116 @@ def _fit_bi_rr(arrays, clicks):
         "total_label": f"Bi-Rosin-Rammler fit (R\u00b2={r2:.3f})",
         "pop1_label": f"Coarse mode $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
         "pop2_label": f"Fine mode $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
-        "cum_label": f"$\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}, $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
+        "summary_text": summary,
+    }
+
+
+# ---------------------------------------------------------------------
+# Bi-Rosin-Rammler -- Cumulative (independent fit against M(>l)/M_T)
+# ---------------------------------------------------------------------
+def _bi_rr_cdf(phi, w, sigma1, k1, sigma2, k2):
+    """
+    Cumulative 'coarser than' survival function M(>l)/M_T for the
+    bi-Rosin-Rammler distribution, in closed form -- the Rosin-Rammler
+    density integrates analytically, so this is fit directly rather
+    than by numerically integrating a separately-fitted density.
+
+    Each component's survival fraction coarser than diameter l=2^-phi
+    is exp(-(l/sigma)^k) -- the standard Rosin-Rammler survival form.
+    No amplitude term is needed since this is already a 0..1 mass
+    fraction, not a wt.% density.
+    """
+    l = 2.0 ** (-phi)
+    surv1 = np.exp(-(l / sigma1) ** k1)
+    surv2 = np.exp(-(l / sigma2) ** k2)
+    return w * surv1 + (1.0 - w) * surv2
+
+
+def _fit_bi_rr_cdf(arrays, clicks):
+    """
+    Independently fits the bi-Rosin-Rammler curve M(>l)/M_T
+    directly against the empirical cumulative data, from its own pair
+    of clicks made on the cumulative page itself (own click phase,
+    same pattern as bi_power_law) -- NOT derived from a bi_rr_pdf fit.
+    """
+    phi_data = arrays["phi"]
+    wt_pct_norm = arrays["weight_pct"]
+
+
+    order = np.argsort(phi_data)
+    phi_data_sorted = phi_data[order]
+    mass_frac_sorted = wt_pct_norm[order] / wt_pct_norm.sum()
+    M_gt_l_data = 1.0 - np.cumsum(mass_frac_sorted)
+    # shift so the curve reads "mass coarser than the LEFT edge of
+    # each bin", matching the usual grain-size cumulative convention
+    M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
+    diam_mm_data = 2.0 ** (-phi_data_sorted)
+
+    # clicks here are 2 points picked directly on the cumulative curve
+    # (phi, M_gt_l value) -- coarse click first or fine click first,
+    # order doesn't matter; sort by phi same as the density-phase clicks.
+    (phi_coarse, m_coarse), (phi_fine, m_fine) = sorted(clicks, key=lambda pt: pt[0])
+
+    sigma1_guess = 2.0 ** (-phi_coarse)
+    sigma2_guess = 2.0 ** (-phi_fine)
+    w_guess = float(np.clip(m_coarse, 0.05, 0.95))
+
+    p0 = [w_guess, sigma1_guess, 4.0, sigma2_guess, 4.0]
+    lower = [0.0, 1e-4, 0.3, 1e-4, 0.3]
+    upper = [1.0, 50.0, 15.0, 50.0, 15.0]
+    p0 = list(np.clip(p0, lower, upper))
+
+    popt, pcov = curve_fit(
+        _bi_rr_cdf, phi_data_sorted, M_gt_l_data,
+        p0=p0, bounds=(lower, upper), maxfev=50000
+    )
+    w_fit, sigma1_fit, k1_fit, sigma2_fit, k2_fit = popt
+    fit_vals = _bi_rr_cdf(phi_data_sorted, *popt)
+    ss_res = np.sum((M_gt_l_data - fit_vals) ** 2)
+    ss_tot = np.sum((M_gt_l_data - M_gt_l_data.mean()) ** 2)
+    r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else float("nan")
+    perr = np.sqrt(np.diag(pcov))
+    w_err, s1_err, k1_err, s2_err, k2_err = perr
+
+    if sigma1_fit < sigma2_fit:
+        w_fit = 1 - w_fit
+        sigma1_fit, sigma2_fit = sigma2_fit, sigma1_fit
+        k1_fit, k2_fit = k2_fit, k1_fit
+        s1_err, s2_err = s2_err, s1_err
+        k1_err, k2_err = k2_err, k1_err
+
+    phi1_mode = -np.log2(sigma1_fit)
+    phi2_mode = -np.log2(sigma2_fit)
+
+    phi_smooth = np.linspace(phi_data.min() - 0.5, phi_data.max() + 0.5, 1000)
+    M_gt_l_fit = _bi_rr_cdf(phi_smooth, *popt)
+    diam_mm_fit = 2.0 ** (-phi_smooth)
+
+    rr_cumulative = {
+        "phi_data_sorted": phi_data_sorted,
+        "diam_mm_data": diam_mm_data,
+        "M_gt_l_data": M_gt_l_data,
+        "phi_fit_sorted": phi_smooth,
+        "diam_mm_fit": diam_mm_fit,
+        "M_gt_l_fit": M_gt_l_fit,
+    }
+
+    summary = (
+        f"BI-ROSIN-RAMMLER FIT (CUMULATIVE, independent fit)\n"
+        f"  w (coarse mass fraction) = {w_fit:.4f} +/- {w_err:.4f}\n"
+        f"  sigma_coarse = {sigma1_fit:.5f} mm (phi={phi1_mode:.3f})  +/- {s1_err:.5f}\n"
+        f"  k_coarse     = {k1_fit:.4f}  +/- {k1_err:.4f}\n"
+        f"  sigma_fine   = {sigma2_fit:.5f} mm (phi={phi2_mode:.3f})  +/- {s2_err:.5f}\n"
+        f"  k_fine       = {k2_fit:.4f}  +/- {k2_err:.4f}\n"
+        f"  R^2          = {r2:.4f}"
+    )
+
+    return {
+        "params": {"w": w_fit, "sigma_coarse_mm": sigma1_fit, "k_coarse": k1_fit,
+                    "sigma_fine_mm": sigma2_fit, "k_fine": k2_fit, "R2": r2},
+        "rmse": None,
+        "cum_label": f"$\\sigma_1$={sigma1_fit:.3f} mm, $k_1$={k1_fit:.3f}, "
+                     f"$\\sigma_2$={sigma2_fit:.3f} mm, $k_2$={k2_fit:.3f}",
         "summary_text": summary,
         "rr_cumulative": rr_cumulative,
     }
@@ -402,14 +468,16 @@ def _fit_bi_power_law(arrays, clicks):
 MODEL_FIT_FUNCS = {
     "bi_gaussian": _fit_bi_gaussian,
     "bi_lb_weibull": _fit_bi_weibull,
-    "bi_rr": _fit_bi_rr,
+    "bi_rr_pdf": _fit_bi_rr,
+    "bi_rr_cdf": _fit_bi_rr_cdf,
     "bi_power_law": _fit_bi_power_law,
 }
 
 MODEL_LABELS = {
     "bi_gaussian": "Bi-Gaussian",
     "bi_lb_weibull": "Bi-Length Biased Weibull",
-    "bi_rr": "Bi-Weibull",
+    "bi_rr_pdf": "Bi-Rosin-Rammler (PDF)",
+    "bi_rr_cdf": "Bi-Rosin-Rammler (Cumulative)",
     "bi_power_law": "Bi-power-law",
 }
 
