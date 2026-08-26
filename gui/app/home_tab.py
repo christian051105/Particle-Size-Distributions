@@ -22,7 +22,7 @@ from PyQt6.QtGui import QPixmap
 ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logos")
 LOGO_FILES = [
     ("Lancaster University", "LancasterUniversitylogo.png"),
-    ("UKRI NERC", "ukri-nerc-square-logo.png"),
+    ("UKRI NERC", "UKRI_NERC_RGB.png"),
     ("ExaGeo", "exageo-logo-main.png"),
 ]
 LOGO_MAX_HEIGHT = 56
