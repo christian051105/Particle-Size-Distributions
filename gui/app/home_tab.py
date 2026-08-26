@@ -28,12 +28,12 @@ LOGO_FILES = [
 LOGO_MAX_HEIGHT = 56
 
 INSTRUCTIONS = """
-<h2>TGSD Fitting Toolkit</h2>
+<h2>Particle Size Distribution Fitting Toolkit</h2>
 <p>This tool fits bimodal statistical models (Bi-Gaussian, Bi-Weibull,
-Bi-power-law, Bi-Rosin-Rammler) to Total Grain Size Distribution data.</p>
+Bi-power-law, Bi-Rosin-Rammler) to Particle Size Distribution data.</p>
 <p><b>To get started:</b></p>
 <ol>
-<li>Click <b>Open CSV File</b> below and select your grain-size data.</li>
+<li>Click <b>Open CSV File</b> below and select your particle size data.</li>
 <li>On the next tab, confirm how the file should be read (header row,
 which columns are phi / size / weight) and choose which model(s) to fit.</li>
 <li>Click each mode's peak on the plot to give the fit a starting guess,
