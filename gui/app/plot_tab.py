@@ -278,8 +278,9 @@ class PlotTab(QWidget):
         if self.density_clicks:    
             for key in density_keys:
                 specs.append({"kind": "density_single", "model_key": key})
-        if self._has_rr():
-            specs.append({"kind": "rr_cumulative"})
+        if self._has_rr_cdf():
+            specs.append({"kind": "rr_cumulative",
+                           "is_click_target": self._phase == "rr_cdf"})
 
         return specs
 
