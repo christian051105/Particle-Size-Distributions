@@ -459,9 +459,12 @@ class PlotTab(QWidget):
         if self._phase == "density":
             phase_models = self._density_models()
             clicks = self.density_clicks
-        else:
+        elif self._phase == "power_law":
             phase_models = ["bi_power_law"]
             clicks = self.power_law_clicks
+        else:
+            phase_models = ["bi_rr_cdf"]
+            clicks = self.rr_cdf_clicks
 
         prior_text = self.results_text.toPlainText()
         self.results_text.setPlainText((prior_text + "\n\n" if prior_text else "") + "Fitting...")
