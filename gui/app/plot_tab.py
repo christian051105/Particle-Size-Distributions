@@ -612,7 +612,7 @@ class PlotTab(QWidget):
         via the shared models.add_mm_twin_axis helper."""
         ax.set_xlabel('\u03a6')
         ax.set_ylabel(r'$M(>l)/M_T$')
-        ax.set_title('Bi-Rosin-Rammler: cumulative view (mm + \u03a6)',
+        ax.set_title('Bi-Rosin-Rammler: cumulative view',
                       fontsize=10, fontweight='bold', pad=32)
         ax.grid(alpha=0.3, which='both')
 
