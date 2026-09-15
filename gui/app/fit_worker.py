@@ -89,8 +89,8 @@ def _fit_bi_gaussian(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": "Bi-Gaussian fit",
-        "pop1_label": f"Pop. 1  $\\mu_1$ = {mu1:.2f} $\\phi$, $\\sigma_1$ = {sig1:.3f}",
-        "pop2_label": f"Pop. 2  $\\mu_2$ = {mu2:.2f} $\\phi$, $\\sigma_2$ = {sig2:.3f}",
+        "pop1_label": f"Coarse Pop.  $\\mu_1$ = {mu1:.2f} $\\phi$, $\\sigma_1$ = {sig1:.3f}",
+        "pop2_label": f"Fine Pop.  $\\mu_2$ = {mu2:.2f} $\\phi$, $\\sigma_2$ = {sig2:.3f}",
         "summary_text": summary,
     }
 
@@ -155,8 +155,8 @@ def _fit_bi_weibull(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": "Bi-Length Biased Weibull fit",
-        "pop1_label": f"Pop. 1  $\\lambda_1$ = {lam1:.3f} mm, $n_1$= {n1:.3f}",
-        "pop2_label": f"Pop. 2  $\\lambda_2$ = {lam2:.5f} mm, $n_2$ = {n2:.3f}",
+        "pop1_label": f"Coarse Pop.  $\\lambda_1$ = {lam1:.3f} mm, $n_1$= {n1:.3f}",
+        "pop2_label": f"Fine Pop.  $\\lambda_2$ = {lam2:.5f} mm, $n_2$ = {n2:.3f}",
         "summary_text": summary,
     }
 
@@ -234,8 +234,8 @@ def _fit_bi_rr(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": f"Bi-Rosin-Rammler fit (R\u00b2={r2:.3f})",
-        "pop1_label": f"Coarse mode $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
-        "pop2_label": f"Fine mode $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
+        "pop1_label": f"Coarse Pop.  $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
+        "pop2_label": f"Fine Pop.  $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
         "summary_text": summary,
     }
 
