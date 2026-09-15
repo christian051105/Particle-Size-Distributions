@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 .gui/__pycache__
 .gui/app/__pycache__
+gui/fit_results.csv
