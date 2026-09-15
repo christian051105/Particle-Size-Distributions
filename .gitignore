@@ -1,5 +1,10 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
-pixi.toml__pycache__/
+pixi.toml
+
+# pycaches
+__pycache__/
 *.pyc
+.gui/__pycache__
+.gui/app/__pycache__
