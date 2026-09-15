@@ -49,6 +49,7 @@ from gui.app.fit_worker import MODEL_LABELS
 
 class PlotTab(QWidget):
     continue_to_export = pyqtSignal()
+    go_to_next_fit = pyqtSignal()
 
     def __init__(self, interactive_tab, parent=None):
         super().__init__(parent)
@@ -105,8 +106,9 @@ class PlotTab(QWidget):
         self.save_button.clicked.connect(self._on_save)
         button_row.addWidget(self.save_button)
         button_row.addStretch()
-        self.continue_button = QPushButton("Continue to Data Export \u2192")
-        self.continue_button.clicked.connect(self.continue_to_export.emit)
+
+        self.continue_button = QPushButton("Fit next file \u2192")
+        self.continue_button.clicked.connect(self.go_to_next_fit.emit)
         button_row.addWidget(self.continue_button)
         layout.addLayout(button_row)
 
@@ -116,6 +118,17 @@ class PlotTab(QWidget):
         layout.addWidget(self.results_text)
 
     # ---------------------------------------------------------------
+    def cont_button_to_export(self):
+        # Change the visible label to indicate exporting to data export
+        # and rewire the click handler to emit the `continue_to_export` signal.
+        self.continue_button.setText("Continue to Data Export")
+        try:
+            # disconnect any existing clicked handlers to avoid duplicate actions
+            self.continue_button.clicked.disconnect()
+        except Exception:
+            pass
+        self.continue_button.clicked.connect(self.continue_to_export.emit)
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._sync_figure_size_to_canvas()

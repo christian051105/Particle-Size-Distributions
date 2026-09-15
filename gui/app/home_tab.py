@@ -10,7 +10,7 @@ import os
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFileDialog, QFrame, QSizePolicy
+    QFileDialog, QFrame, QSizePolicy, QDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap
@@ -43,7 +43,7 @@ then review the fitted curve and save the results.</li>
 
 
 class HomeTab(QWidget):
-    file_selected = pyqtSignal(str)
+    file_selected = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -138,11 +138,25 @@ class HomeTab(QWidget):
         return label
 
     def _on_open_clicked(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Select your grain-size CSV file", "",
-            "CSV files (*.csv);;All files (*.*)"
-        )
-        if not path:
+        file_dialog = QFileDialog(self)
+        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+        file_dialog.setViewMode(QFileDialog.ViewMode.Detail)
+        file_dialog.setNameFilter("*.csv *.txt;;All files (*)")
+        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptOpen)
+
+        if file_dialog.exec() != QDialog.DialogCode.Accepted:
             return
-        self.status_label.setText(f"Selected: {path}")
-        self.file_selected.emit(path)
+
+        selected_files = file_dialog.selectedFiles()
+
+        if not selected_files:
+            print("No file selected.")
+            return
+    
+
+        self.status_label.setText(f"Selected: {selected_files}")
+        self.file_selected.emit(selected_files)
+
+
+
+       

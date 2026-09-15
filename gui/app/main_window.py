@@ -38,12 +38,25 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.plot_tab, "Results")
         self.tabs.addTab(self.export_tab, "Export Tab")
 
-        self.home_tab.file_selected.connect(self._on_file_selected)
+        self.home_tab.file_selected.connect(self._on_files_selected)
         self.settings_tab.settings_confirmed.connect(self._on_settings_confirmed)
         self.interactive_tab.fitting_complete.connect(self._on_fitting_complete)
         self.plot_tab.continue_to_export.connect(self._on_continue_to_export)
+        self.plot_tab.go_to_next_fit.connect(self._on_next_fit)
 
-    def _on_file_selected(self, path):
+    def _on_files_selected(self, paths):
+        self.fileIndex=0
+        self.nfiles = len(paths)
+        self.paths = paths
+
+        self._start_fit_process(self.fileIndex)
+
+    def _start_fit_process(self,index):
+
+        if index == self.nfiles-1:
+            self.plot_tab.cont_button_to_export()
+        
+        path = self.paths[index]
         self.settings_tab.load_file(path)
         self.tabs.setCurrentWidget(self.settings_tab)
 
@@ -54,6 +67,12 @@ class MainWindow(QMainWindow):
     def _on_fitting_complete(self):
         self.plot_tab.refresh()
         self.tabs.setCurrentWidget(self.plot_tab)
+
+    def _on_next_fit(self):
+        self.fileIndex += 1
+        self._start_fit_process(self.fileIndex)
+        self.tabs.setCurrentWidget(self.settings_tab)
+
 
     def _on_continue_to_export(self):
         self.tabs.setCurrentWidget(self.export_tab)
