@@ -2,3 +2,7 @@
 .pixi/*
 !.pixi/config.toml
 pixi.toml
+
+#pycaches
+.gui/__pycache__
+.gui/app/__pycache__
