@@ -10,11 +10,17 @@ import pandas as pd
 
 
 def preview_csv_lines(path, n_preview_rows=20):
-    """Return the first n_preview_rows raw lines of a file, for display
+    """Return the first n_preview_rows non-empty raw lines of a file, for display
     in a list/table widget so the user can pick the header row."""
+    lines = []
     with open(path, "r", errors="replace") as f:
-        lines = [next(f, "") for _ in range(n_preview_rows)]
-    return [line.rstrip("\n") for line in lines]
+        for line in f:
+            cleaned = line.rstrip("\n")
+            if cleaned.strip():
+                lines.append(cleaned)
+            if len(lines) >= n_preview_rows:
+                break
+    return lines
 
 
 def load_raw_table(path, header_row):

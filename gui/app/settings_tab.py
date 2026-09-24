@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
     QLabel, QListWidget, QComboBox, QSpinBox, QPushButton,
     QLineEdit, QFileDialog, QMessageBox, QDoubleSpinBox,
-    QCheckBox, QAbstractItemView
+    QCheckBox, QAbstractItemView, QTableWidget,QTableWidgetItem
 )
 from PyQt6.QtCore import pyqtSignal
 
@@ -23,6 +23,8 @@ from gui.data_prep import (
     detect_phi_bin_width, suggest_bin_width,
 )
 from gui.results_store import RESULTS_PATH
+
+import numpy as np
 
 MODEL_CHOICES = [
     ("Bi-Gaussian", "bi_gaussian"),
@@ -55,21 +57,18 @@ class SettingsTab(QWidget):
         # --- header row selection -------------------------------------
         header_box = QGroupBox("1. Confirm header row")
         header_layout = QVBoxLayout(header_box)
-        header_layout.addWidget(QLabel(
-            "Select the line number containing your column headers. "
-            "Everything above it is skipped."
-        ))
-        self.preview_list = QListWidget()
+        header_layout.addWidget(QLabel("The row containing your column headers is detected automatically. Check the selection before pressing \"Confirm\". To select a different row as your column headers change the index in the header row index box and press confirm."))
+        self.preview_list = QTableWidget()
         self.preview_list.setMaximumHeight(160)
         self.preview_list.itemClicked.connect(self._on_preview_row_clicked)
         header_layout.addWidget(self.preview_list)
 
         header_row_row = QHBoxLayout()
-        header_row_row.addWidget(QLabel("Header row index:"))
+        header_row_row.addWidget(QLabel("Index of header row in selected csv file:"))
         self.header_row_spin = QSpinBox()
         self.header_row_spin.setRange(0, 19)
         header_row_row.addWidget(self.header_row_spin)
-        self.load_columns_button = QPushButton("Load Columns")
+        self.load_columns_button = QPushButton("Confirm")
         self.load_columns_button.clicked.connect(self._on_load_columns)
         header_row_row.addWidget(self.load_columns_button)
         header_row_row.addStretch()
@@ -180,6 +179,21 @@ class SettingsTab(QWidget):
         for cb in self.model_checkboxes.values():
             cb.setEnabled(enabled)
  
+    def populate_table(self,lines):
+        self.header_row_spin.setValue(self.header_row)
+        header_row_array = lines[self.header_row].split(',')
+        self.ncols = len(header_row_array)
+        self.preview_list.setColumnCount(len(header_row_array))
+        self.preview_list.setHorizontalHeaderLabels(header_row_array)
+
+        datalines = lines[self.header_row+1:]
+        self.preview_list.setRowCount(len(datalines))
+
+        for r, line in enumerate(datalines):
+            cells = line.split(',')
+            for c,value in enumerate(cells):
+                self.preview_list.setItem(r,c,QTableWidgetItem(str(value)))
+        return
 
     def load_file(self, path):
         """Called by main_window when a file is selected on the Home tab."""
@@ -188,13 +202,24 @@ class SettingsTab(QWidget):
         self.file_label.setText(f"File: {os.path.basename(path)}  ({path})")
         self.preview_list.clear()
         try:
-            lines = preview_csv_lines(path, n_preview_rows=20)
+            lines = preview_csv_lines(path, n_preview_rows=50)
         except Exception as e:
             QMessageBox.warning(self, "Could not read file", str(e))
             return
-        for i, line in enumerate(lines):
-            self.preview_list.addItem(f"{i:>3}: {line}")
+        self._guess_header_row(lines)
+        self.populate_table(lines)
+
         self._set_columns_enabled(False)
+
+    def _guess_header_row(self,lines):
+        for i,line in enumerate(lines):
+            nonEmptyMask = np.array(line.split(',')) != ''
+            nrows = nonEmptyMask.shape[0]
+            if nonEmptyMask.all() == True:
+                break
+        self.header_row = i
+        self.nrows=nrows
+       
 
     def _on_preview_row_clicked(self, item):
         idx = self.preview_list.row(item)
@@ -204,7 +229,10 @@ class SettingsTab(QWidget):
         if not self.csv_path:
             QMessageBox.warning(self, "No file", "Select a CSV file first.")
             return
-        header_row = self.header_row_spin.value()
+        if self.header_row != self.header_row_spin.value():
+            self.header_row = self.header_row_spin.value()
+            self.populate_table(preview_csv_lines(self.csv_path, n_preview_rows=50))
+        header_row=self.header_row
         try:
             self.raw_df = load_raw_table(self.csv_path, header_row)
         except Exception as e:
@@ -214,11 +242,18 @@ class SettingsTab(QWidget):
             return
 
         cols = list(self.raw_df.columns)
+
+        
         if not cols:
             QMessageBox.warning(self, "No columns found",
                                  "That header row produced no columns. Try a different row.")
             return
+        
+        if len(cols)<self.ncols:
+            for i in range(self.ncols-len(cols)):
+                cols.append("")
 
+        self.preview_list.setHorizontalHeaderLabels(cols)
         for combo in (self.size_combo, self.weight_combo):
             combo.clear()
         self.size_combo.addItems(cols)
