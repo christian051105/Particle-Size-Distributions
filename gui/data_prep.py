@@ -91,6 +91,11 @@ def build_arrays(df, mapping, conventions=None):
             )
         weight_pct = w_raw / total * 100.0
 
+    density_header = mapping.get("density")
+    if density_header == "Constant":
+        density  = [1.0]
+    else:
+        density = df[density_header].values
     valid = ~np.isnan(phi)
     phi = phi[valid]
     if size_mm is not None:
@@ -104,10 +109,12 @@ def build_arrays(df, mapping, conventions=None):
         size_mm = size_mm[order]
     if weight_pct is not None:
         weight_pct = weight_pct[order]
+    if density_header != "Constant":
+        density = density[order]
 
     phi_bin_width = detect_phi_bin_width(phi)
 
     return {
         "phi": phi, "size_mm": size_mm, "weight_pct": weight_pct,
-        "phi_bin_width": phi_bin_width, "n_points": len(phi),
+        "phi_bin_width": phi_bin_width,"density":density, "n_points": len(phi),
     }

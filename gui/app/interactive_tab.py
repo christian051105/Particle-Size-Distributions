@@ -64,6 +64,7 @@ class InteractiveTab(QWidget):
         self._click_cid = None
         self._panel_specs = []        # rebuilt on every settings load / phase change
         self._page_index = 0
+        self.compare_constant=False
         #--Plot Style parameters -----------------------------------------
         self.CDATA = '#FF7F00'
         self.FIT_COLORS = {
@@ -378,10 +379,11 @@ class InteractiveTab(QWidget):
         else:
             phase_models = ["bi_power_law"]
             clicks = self.power_law_clicks
+            if self.compare_constant:
+                phase_models.append("cd_bi_power")
 
         prior_text = self.results_text.toPlainText()
         self.results_text.setPlainText((prior_text + "\n\n" if prior_text else "") + "Fitting...")
-
         self.worker = FitWorker(phase_models, self.arrays, clicks)
         self.worker.model_done.connect(self._on_model_done)
         self.worker.model_failed.connect(self._on_model_failed)
@@ -515,19 +517,28 @@ class InteractiveTab(QWidget):
         else:
             weight_pct = self.arrays["weight_pct"]
             size_mm = self.arrays.get("size_mm")
+            density = self.arrays.get("density",[1.0])
+            
+            num_raw_cd = weight_pct / (1*(size_mm ** 3))
+            
             if size_mm is not None:
                 with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
-                    num_raw = weight_pct / (size_mm ** 3)
+                    num_raw = weight_pct / (density*(size_mm ** 3))
                 num_raw = np.nan_to_num(num_raw, nan=0.0, posinf=0.0, neginf=0.0)
+                
                 order = np.argsort(phi)
                 phi_sorted = phi[order]
                 num_sorted = num_raw[order]
                 total = num_sorted.sum()
                 if total > 0:
                     N_cum = np.cumsum(num_sorted) / total
+                    N_cum_cd = np.cumsum(num_raw_cd[order]) / num_raw_cd.sum()
                     mask = N_cum > 0
                     ax.semilogy(phi_sorted[mask], N_cum[mask], 'ok',
                                 markersize=5, label='Data', zorder=4)
+                    if self.compare_constant:
+                        ax.semilogy(phi_sorted[mask], N_cum_cd[mask], 'ob',
+                                                        markersize=5, label='Data', zorder=4)
                     ax.legend(fontsize=7, loc='lower left', framealpha=0.85)
             else:
                 ax.text(0.5, 0.5, "No size column mapped -- cannot preview data",

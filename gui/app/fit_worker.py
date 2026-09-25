@@ -448,6 +448,7 @@ def _fit_bi_power_law(arrays, clicks):
     Phi = arrays["phi"]
     d_mm = arrays["size_mm"]
     massp = arrays["weight_pct"]
+    density = arrays["density"]
  
     valid = ~np.isnan(d_mm) & ~np.isnan(massp) & ~np.isnan(Phi) & (d_mm > 0)
     Phi, d_mm, massp = Phi[valid], d_mm[valid], massp[valid]
@@ -455,7 +456,7 @@ def _fit_bi_power_law(arrays, clicks):
     Phi, d_mm, massp = Phi[order], d_mm[order], massp[order]
  
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
-        num_raw = massp / (d_mm ** 3)
+        num_raw = massp / (density*(d_mm ** 3))
     num_raw[~np.isfinite(num_raw)] = 0.0
     no_data = num_raw / np.sum(num_raw)
  
@@ -533,6 +534,7 @@ def _fit_bi_power_law(arrays, clicks):
 
     summary = (
         f"BI-POWER-LAW FIT (best of {n_trials} multistart attempts)\n"
+        f"  Constant Density? {len(density)==1}\n"
         f"  lambda_f = {lambda_f:.4g} Phi\n"
         f"  lambda_c = {lambda_c:.4g} Phi\n"
         f"  Df       = {Df:.3f}\n"
@@ -602,4 +604,10 @@ class FitWorker(QThread):
                 self.model_failed.emit(model_key, f"{type(e).__name__}: {e}")
                 continue
             self.model_done.emit(model_key, result)
+        if "cd_bi_power" in self.model_keys:
+            print("fitting constant density aswell")
+            self.arrays["density"]=[1.0]
+            result = _fit_bi_power_law(self.arrays,self.clicks)
+            self.model_done.emit("cd_bi_power",result)
+
         self.all_finished.emit()

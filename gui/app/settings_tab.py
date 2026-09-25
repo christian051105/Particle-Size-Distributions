@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
     QCheckBox, QAbstractItemView, QTableWidget,QTableWidgetItem
 )
 from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QAbstractItemView
 
 from gui.data_prep import (
     preview_csv_lines, load_raw_table, build_arrays,
@@ -60,7 +61,8 @@ class SettingsTab(QWidget):
         header_layout.addWidget(QLabel("The row containing your column headers is detected automatically. Check the selection before pressing \"Confirm\". To select a different row as your column headers change the index in the header row index box and press confirm."))
         self.preview_list = QTableWidget()
         self.preview_list.setMaximumHeight(160)
-        self.preview_list.itemClicked.connect(self._on_preview_row_clicked)
+        self.preview_list.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.preview_list.cellDoubleClicked.connect(self._on_preview_row_clicked)
         header_layout.addWidget(self.preview_list)
 
         header_row_row = QHBoxLayout()
@@ -80,15 +82,21 @@ class SettingsTab(QWidget):
         mapping_form = QFormLayout(mapping_box)
         self.size_combo = QComboBox()
         self.weight_combo = QComboBox()
+        self.density_combo = QComboBox()
+        self.density_combo.addItems(["Constant"])
         self.size_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
         mapping_form.addRow("Particle size column:", self.size_combo)
  
         self.size_type_combo = QComboBox()
         self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
         self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
+
         mapping_form.addRow("Particle size column is in:", self.size_type_combo)
  
         mapping_form.addRow("Weight / mass column:", self.weight_combo)
+
+        mapping_form.addRow("Density (kg m^-3; Constant or row header)", self.density_combo)
+
         layout.addWidget(mapping_box)
 
 
@@ -221,9 +229,8 @@ class SettingsTab(QWidget):
         self.nrows=nrows
        
 
-    def _on_preview_row_clicked(self, item):
-        idx = self.preview_list.row(item)
-        self.header_row_spin.setValue(idx)
+    def _on_preview_row_clicked(self, idx):
+        self.header_row_spin.setValue(idx+self.header_row+1)
 
     def _on_load_columns(self):
         if not self.csv_path:
@@ -254,10 +261,11 @@ class SettingsTab(QWidget):
                 cols.append("")
 
         self.preview_list.setHorizontalHeaderLabels(cols)
-        for combo in (self.size_combo, self.weight_combo):
+        for combo in (self.size_combo, self.weight_combo,self.density_combo):
             combo.clear()
         self.size_combo.addItems(cols)
         self.weight_combo.addItems([NONE_OPTION] + cols)
+        self.density_combo.addItems(["Constant"] + cols)
 
         # best-effort guesses
         guessed_phi_idx = None
@@ -333,6 +341,7 @@ class SettingsTab(QWidget):
         size_col = self.size_combo.currentText()
         weight_col = self.weight_combo.currentText()
         weight_col = None if weight_col == NONE_OPTION else weight_col
+        density_col = self.density_combo.currentText()
 
         model_keys = self._selected_model_keys()
         if not model_keys:
@@ -348,7 +357,7 @@ class SettingsTab(QWidget):
                                  "All models need a weight/mass column.")
             return
 
-        mapping = {"size": size_col, "size_type": self._current_size_type(), "weight": weight_col}
+        mapping = {"size": size_col, "size_type": self._current_size_type(), "weight": weight_col,"density":density_col}
 
         try:
             arrays = build_arrays(self.raw_df, mapping)

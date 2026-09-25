@@ -248,7 +248,7 @@ class PlotTab(QWidget):
             self._render_density_panel(ax, it, phi, weight_pct, keys_here, title=label)
 
         elif kind == "power_law":
-            self._render_power_law_panel(ax, it, it._results_by_model.get("bi_power_law"))
+            self._render_power_law_panel(ax, it, it._results_by_model)
             for cx, cy in it.power_law_clicks:
                 ax.plot(cx, cy, 'x', color='black', markersize=10,
                         markeredgewidth=2, zorder=5)
@@ -315,7 +315,8 @@ class PlotTab(QWidget):
             ax.legend(fontsize=7, loc='upper left', framealpha=0.85)
         return twin
 
-    def _render_power_law_panel(self, ax, it, result):
+    def _render_power_law_panel(self, ax, it, results):
+        result = results.get("bi_power_law")
         ax.set_xlabel('\u03a6 (diameter)')
         ax.set_ylabel(r'$N(\geq\Phi)/N_0$')
         ax.set_title('Bi-power-law', fontsize=10, fontweight='bold', pad=32)
@@ -347,6 +348,13 @@ class PlotTab(QWidget):
                 D_str = f"$D_f$ = {D_f:.3f}, $D_c$={D_c:.3f}"
                 ax.plot([], [], ' ', label=D_str)
 
+            
+            cd = results.get("cd_bi_power",None)
+            if cd is not None:
+                ax.semilogy(cd["cumulative_data"]["phi"], cd["cumulative_data"]["N_cum"], 'ob', markersize=5,
+                            label='Constant Density Data', zorder=4)
+                ax.semilogy(cd["phi_smooth"], cd["y_total"],'-', color='blue', lw=2,  
+                            label="Constant Density Fit")
             ax.legend(fontsize=7, loc='lower left', framealpha=0.85)
         else:
             ax.text(0.5, 0.5, "No fit yet.", ha='center', va='center',
