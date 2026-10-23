@@ -53,11 +53,12 @@ def suggest_bin_width(detected_width):
     return min(common_widths, key=lambda w: abs(w - detected_width))
 
 
-def build_arrays(df, mapping, conventions=None):
+def build_arrays(df, mapping, conventions=None, phi_bin_width=None):
     """
     Turn a column-mapping dict into clean numpy arrays.
-    Returns dict with keys: phi, size_mm, weight_pct, phi_bin_width.
-    Raises ValueError on bad/empty weight columns.
+    Returns dict with keys: phi, size_mm, weight_pct, phi_bin_width, density.
+    phi_bin_width: if None, detected from the edges and snapped to a common
+    value; Settings passes the user-confirmed value to override it.
     """
     size_col = mapping["size"]
     size_type = mapping.get("size_type", "phi")
@@ -69,15 +70,12 @@ def build_arrays(df, mapping, conventions=None):
         with np.errstate(divide="ignore", invalid="ignore"):
             phi_edge = -np.log2(size_raw)
     elif size_type == "\u00b5m":
-        mm_edge = size_raw / 1000.0
         with np.errstate(divide="ignore", invalid="ignore"):
-            phi_edge = -np.log2(mm_edge)
+            phi_edge = -np.log2(size_raw / 1000.0)
     else:
         raise ValueError(f"Unknown size_type '{size_type}'.")
 
-    phi = phi_edge - 0.5  # bin edges -> bin centers, always in phi-space
-    size_mm = 2.0 ** (-phi)
-
+    # weights
     weight_pct = None
     if mapping.get("weight") is not None:
         weight_col = mapping["weight"]
@@ -91,30 +89,36 @@ def build_arrays(df, mapping, conventions=None):
             )
         weight_pct = w_raw / total * 100.0
 
+    # density: always an array the same length as the table, so the
+    # validity mask and sort below apply to it like every other column
     density_header = mapping.get("density")
-    if density_header == "Constant":
-        density  = [1.0]
+    if density_header in (None, "Constant"):
+        density = np.ones(len(df))
     else:
-        density = df[density_header].values
-    valid = ~np.isnan(phi)
-    phi = phi[valid]
-    if size_mm is not None:
-        size_mm = size_mm[valid]
+        density = pd.to_numeric(df[density_header], errors="coerce").to_numpy(dtype=float)
+
+    # drop invalid rows BEFORE anything else
+    valid = np.isfinite(phi_edge)
+    phi_edge = phi_edge[valid]
+    density = density[valid]
     if weight_pct is not None:
         weight_pct = weight_pct[valid]
 
-    order = np.argsort(phi)
-    phi = phi[order]
-    if size_mm is not None:
-        size_mm = size_mm[order]
+    order = np.argsort(phi_edge)
+    phi_edge = phi_edge[order]
+    density = density[order]
     if weight_pct is not None:
         weight_pct = weight_pct[order]
-    if density_header != "Constant":
-        density = density[order]
 
-    phi_bin_width = detect_phi_bin_width(phi)
+    # bin width from the EDGES, then use it for the edge -> centre shift
+    if phi_bin_width is None:
+        phi_bin_width = suggest_bin_width(detect_phi_bin_width(phi_edge))
+
+    phi = phi_edge - phi_bin_width / 2.0
+    size_mm = 2.0 ** (-phi)
 
     return {
         "phi": phi, "size_mm": size_mm, "weight_pct": weight_pct,
-        "phi_bin_width": phi_bin_width,"density":density, "n_points": len(phi),
+        "phi_bin_width": phi_bin_width, "density": density,
+        "n_points": len(phi),
     }
