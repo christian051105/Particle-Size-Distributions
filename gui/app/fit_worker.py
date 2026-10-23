@@ -355,7 +355,7 @@ def _fit_bi_rr_cdf(arrays, clicks=None):
     ss_tot = np.sum((M_gt_l_data - M_gt_l_data.mean()) ** 2)
 
     rng = np.random.default_rng(0)
-    n_trials = 12
+    n_trials = 20
     best_r2 = -np.inf
     best_popt = None
     best_pcov = None
