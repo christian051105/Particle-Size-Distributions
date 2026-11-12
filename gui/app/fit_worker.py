@@ -2,7 +2,7 @@
 gui/fit_worker.py
 ==================
 Runs curve_fit in a background QThread so clicking doesn't freeze the
-UI while scipy works. 
+UI while scipy works.
 """
 
 import numpy as np
@@ -234,8 +234,8 @@ def _fit_bi_rr(arrays, clicks):
         "y_pop1": y_pop1,
         "y_pop2": y_pop2,
         "total_label": f"Bi-Rosin-Rammler fit (R\u00b2={r2:.3f})",
-        "pop1_label": f"Coarse Pop.  $\\lambda_1$={lambda1_fit:.3f} mm, $n_1$={n1_fit:.3f}",
-        "pop2_label": f"Fine Pop.  $\\lambda_2$={lambda2_fit:.3f} mm, $n_2$={n2_fit:.3f}",
+        "pop1_label": f"Coarse Pop.  $d'_c$={lambda1_fit:.3f} mm, $k_c$={n1_fit:.3f}",
+        "pop2_label": f"Fine Pop.  $d'_f$={lambda2_fit:.3f} mm, $k_f$={n2_fit:.3f}",
         "summary_text": summary,
     }
 
@@ -449,20 +449,20 @@ def _fit_bi_power_law(arrays, clicks):
     d_mm = arrays["size_mm"]
     massp = arrays["weight_pct"]
     density = arrays["density"]
- 
+
     valid = ~np.isnan(d_mm) & ~np.isnan(massp) & ~np.isnan(Phi) & (d_mm > 0)
     Phi, d_mm, massp = Phi[valid], d_mm[valid], massp[valid]
     order = np.argsort(Phi)
     Phi, d_mm, massp = Phi[order], d_mm[order], massp[order]
- 
+
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
         num_raw = massp / (density*(d_mm ** 3))
     num_raw[~np.isfinite(num_raw)] = 0.0
     no_data = num_raw / np.sum(num_raw)
- 
+
     N_cum = np.cumsum(no_data)
     N_cum = N_cum / N_cum[-1]
- 
+
     mask = N_cum > 0
     phi_masked = Phi[mask]
     N_masked = N_cum[mask]
