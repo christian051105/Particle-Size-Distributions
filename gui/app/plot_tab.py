@@ -81,7 +81,7 @@ class PlotTab(QWidget):
         layout.addWidget(header)
 
         nav_row = QHBoxLayout()
-        self.prev_button = QPushButton("\u2190 Previous")
+        self.prev_button = QPushButton("← Previous")
         self.prev_button.clicked.connect(self._go_prev)
         nav_row.addWidget(self.prev_button)
 
@@ -90,7 +90,7 @@ class PlotTab(QWidget):
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         nav_row.addWidget(self.page_label, stretch=1)
 
-        self.next_button = QPushButton("Next \u2192")
+        self.next_button = QPushButton("Next →")
         self.next_button.clicked.connect(self._go_next)
         nav_row.addWidget(self.next_button)
         layout.addLayout(nav_row)
@@ -107,7 +107,7 @@ class PlotTab(QWidget):
         button_row.addWidget(self.save_button)
         button_row.addStretch()
 
-        self.continue_button = QPushButton("Fit next file \u2192")
+        self.continue_button = QPushButton("Fit next file →")
         self.continue_button.clicked.connect(self.go_to_next_fit.emit)
         button_row.addWidget(self.continue_button)
         layout.addLayout(button_row)
@@ -185,7 +185,7 @@ class PlotTab(QWidget):
         if kind == "power_law":
             return "Bi-power-law"
         if kind == "rr_cumulative":
-            return "Bi-Rosin-Rammler (Cumulative Bi-Weibull) (mm + \u03a6)"
+            return "Bi-Rosin-Rammler (Cumulative Bi-Weibull) (mm + Φ)"
         return kind
 
     # ---------------------------------------------------------------
@@ -288,7 +288,7 @@ class PlotTab(QWidget):
         bar_width = 0.90 * it.arrays.get("phi_bin_width", 1.0)
         ax.bar(phi, weight_pct, width=bar_width, color=self.CDATA, alpha=0.55,
                edgecolor='grey', linewidth=0.5, label='Data')
-        ax.set_xlabel('\u03a6 (diameter)')
+        ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel('Mass (wt.%)')
         ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
         ax.set_xlim(phi.min() - 1, phi.max() + 1)
@@ -317,8 +317,8 @@ class PlotTab(QWidget):
 
     def _render_power_law_panel(self, ax, it, results):
         result = results.get("bi_power_law")
-        ax.set_xlabel('\u03a6 (diameter)')
-        ax.set_ylabel(r'$N(\geq\Phi)/N_0$')
+        ax.set_xlabel(r'Grain size ($\phi$)')
+        ax.set_ylabel(r'$N(\geq\phi)/N_0$')
         ax.set_title('Bi-power-law', fontsize=10, fontweight='bold', pad=32)
         phi = it.arrays["phi"]
         ax.set_xlim(phi.min() - 4, phi.max() + 4)
@@ -340,10 +340,10 @@ class PlotTab(QWidget):
 
             if lambda_f is not None:
                 ax.axvline(lambda_f, color='#2980b9', lw=1.3, ls='--',
-                           zorder=3, label=f'\u03bb$_f$ (fine crossover) = {lambda_f:.2f} \u03a6')
+                           zorder=3, label=f'λ$_f$ (fine crossover) = {lambda_f:.2f} $\\phi$')
             if lambda_c is not None:
                 ax.axvline(lambda_c, color='#27ae60', lw=1.3, ls='--',
-                           zorder=3, label=f'\u03bb$_c$ (coarse crossover) = {lambda_c:.2f} \u03a6')
+                           zorder=3, label=f'λ$_c$ (coarse crossover) = {lambda_c:.2f} $\\phi$')
             if D_f and D_c is not None:
                 D_str = f"$D_f$ = {D_f:.3f}, $D_c$={D_c:.3f}"
                 ax.plot([], [], ' ', label=D_str)
@@ -364,7 +364,7 @@ class PlotTab(QWidget):
         return add_mm_twin_axis(ax)
 
     def _render_rr_cumulative(self, ax, it, result):
-        ax.set_xlabel('\u03a6 (diameter)')
+        ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel(r'$M(>l)/M_T$')
         ax.set_title('Bi-Rosin-Rammler (Cumulative)', fontsize=10, fontweight='bold', pad=32)
         ax.grid(alpha=0.3, which='both')
