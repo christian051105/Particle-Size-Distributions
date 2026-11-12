@@ -212,7 +212,7 @@ class InteractiveTab(QWidget):
         self.instructions_label.setText(f"Fitting: {model_names}\n{phase_msg}")
 
     # ---------------------------------------------------------------
-    # Panel plan: 
+    # Panel plan:
     # ---------------------------------------------------------------
     def _build_panel_specs(self):
         specs = []
@@ -283,7 +283,7 @@ class InteractiveTab(QWidget):
                 cx = clicks[:, 0]
                 cy = clicks[:, 1]
                 ax.plot(cx, cy, 'x', color='black', markersize=10,
-                        markeredgewidth=2, zorder=5, label="Guessed Peak Locations")
+                        markeredgewidth=2, zorder=5, label="Clicked peak positions")
 
             ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0),
                       borderaxespad=0.0)
@@ -480,7 +480,7 @@ class InteractiveTab(QWidget):
 
     def _render_power_law_panel(self, ax, result, is_click_target=False):
         ax.set_xlabel(r'Grain size ($\phi$)')
-        ax.set_ylabel(r'$N(\geq\phi)/N_0$')
+        ax.set_ylabel(r'$N(\leq\phi)/N_0$')
         title = 'Bi-power-law'
         if is_click_target:
             title += ' -- click crossover(s) (change of direction) to set starting guess'
@@ -518,14 +518,14 @@ class InteractiveTab(QWidget):
             weight_pct = self.arrays["weight_pct"]
             size_mm = self.arrays.get("size_mm")
             density = self.arrays.get("density",[1.0])
-            
+
             num_raw_cd = weight_pct / (1*(size_mm ** 3))
-            
+
             if size_mm is not None:
                 with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
                     num_raw = weight_pct / (density*(size_mm ** 3))
                 num_raw = np.nan_to_num(num_raw, nan=0.0, posinf=0.0, neginf=0.0)
-                
+
                 order = np.argsort(phi)
                 phi_sorted = phi[order]
                 num_sorted = num_raw[order]
