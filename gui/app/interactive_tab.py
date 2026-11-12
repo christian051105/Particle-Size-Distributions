@@ -451,7 +451,7 @@ class InteractiveTab(QWidget):
         bar_width = 0.90 * self.arrays.get("phi_bin_width", 1.0)
         ax.bar(phi, weight_pct, width=bar_width, color=self.CDATA, alpha=0.55,
                edgecolor='grey', linewidth=0.5, label='Data')
-        ax.set_xlabel('\u03a6 (diameter)')
+        ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel('Mass (wt.%)')
         ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
         ax.set_xlim(phi.min() - 1, phi.max() + 1)
@@ -479,8 +479,8 @@ class InteractiveTab(QWidget):
         return twin
 
     def _render_power_law_panel(self, ax, result, is_click_target=False):
-        ax.set_xlabel('\u03a6 (diameter)')
-        ax.set_ylabel(r'$N(\geq\Phi)/N_0$')
+        ax.set_xlabel(r'Grain size ($\phi$)')
+        ax.set_ylabel(r'$N(\geq\phi)/N_0$')
         title = 'Bi-power-law'
         if is_click_target:
             title += ' -- click crossover(s) (change of direction) to set starting guess'
@@ -505,10 +505,10 @@ class InteractiveTab(QWidget):
 
             if lambda_f is not None:
                 ax.axvline(lambda_f, color='#2980b9', lw=1.3, ls='--',
-                           zorder=3, label=f'\u03bb$_f$ (fine crossover) = {lambda_f:.2f} \u03a6')
+                           zorder=3, label=f'λ$_f$ (fine crossover) = {lambda_f:.2f} $\\phi$')
             if lambda_c is not None:
                 ax.axvline(lambda_c, color='#27ae60', lw=1.3, ls='--',
-                           zorder=3, label=f'\u03bb$_c$ (coarse crossover) = {lambda_c:.2f} \u03a6')
+                           zorder=3, label=f'λ$_c$ (coarse crossover) = {lambda_c:.2f} $\\phi$')
             if D_f and D_c is not None:
                 D_str = f"$D_f$ = {D_f:.3f}, $D_c$={D_c:.3f}"
                 ax.plot([], [], ' ', label=D_str)
