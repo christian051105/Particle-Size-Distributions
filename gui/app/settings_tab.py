@@ -88,7 +88,7 @@ class SettingsTab(QWidget):
         mapping_form.addRow("Particle size column:", self.size_combo)
  
         self.size_type_combo = QComboBox()
-        self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
+        self.size_type_combo.addItems(["Φ (phi)", "mm", "µm"])
         self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
 
         mapping_form.addRow("Particle size column is in:", self.size_type_combo)
@@ -120,10 +120,14 @@ class SettingsTab(QWidget):
         # --- model + output ------------------------------------------------
         model_box = QGroupBox("4. Model(s) to fit and results file")
         model_box_layout = QVBoxLayout(model_box)
-        model_box_layout.addWidget(QLabel(
-            "Select one or more models. All selected models are fit from "
-            "the same two peak clicks on the next tab."
-        ))
+        models_note = QLabel(
+            "Select one or more models. The PDF models are fitted from one "
+            "shared pair of peak clicks on the next tab. Bi-power-law needs "
+            "its own pair of clicks, and Bi-Rosin-Rammler (Cumulative) is "
+            "fitted automatically, with no clicks."
+        )
+        models_note.setWordWrap(True)
+        model_box_layout.addWidget(models_note)
         self.model_checkboxes = {}
 
         CDF_MODEL_KEYS = {"bi_power_law", "bi_rr_cdf"}
@@ -149,7 +153,7 @@ class SettingsTab(QWidget):
             model_box_layout.addWidget(cb)
 
         self.power_law_note = QLabel(
-            "Bi-power-law needs a physical size column (mm/\u00b5m) -- "
+            "Bi-power-law needs a physical size column (mm/µm) -- "
             "select one above, or deselect Bi-power-law."
         )
         self.power_law_note.setStyleSheet("color: #a06000;")
@@ -171,7 +175,7 @@ class SettingsTab(QWidget):
         layout.addWidget(model_box)
 
         # --- confirm -----------------------------------------------------
-        self.confirm_button = QPushButton("Confirm and Continue to Plot \u2192")
+        self.confirm_button = QPushButton("Confirm and Continue →")
         self.confirm_button.setMinimumHeight(40)
         self.confirm_button.clicked.connect(self._on_confirm)
         layout.addWidget(self.confirm_button)
@@ -274,14 +278,14 @@ class SettingsTab(QWidget):
             lc = c.lower()
             if "weight" in lc or "wt" in lc or "mass" in lc:
                 self.weight_combo.setCurrentText(c)
-            if guessed_phi_idx is None and ("phi" in lc or "\u03a6" in lc):
+            if guessed_phi_idx is None and ("phi" in lc or "Φ" in lc):
                 guessed_phi_idx = i
             if guessed_size_idx is None and (any(tok in lc for tok in ("size", "diameter", "d_mm")) or lc.strip() == "mm"):
                 guessed_size_idx = i
  
         if guessed_phi_idx is not None:
             self.size_combo.setCurrentIndex(guessed_phi_idx)
-            self.size_type_combo.setCurrentText("\u03a6 (phi)")
+            self.size_type_combo.setCurrentText("Φ (phi)")
         elif guessed_size_idx is not None:
             self.size_combo.setCurrentIndex(guessed_size_idx)
             self.size_type_combo.setCurrentText("mm")
@@ -303,7 +307,7 @@ class SettingsTab(QWidget):
             if size_type == "mm":
                 with np.errstate(divide="ignore", invalid="ignore"):
                     phi_raw = -np.log2(size_raw)
-            elif size_type == "\u00b5m":
+            elif size_type == "µm":
                 with np.errstate(divide="ignore", invalid="ignore"):
                     phi_raw = -np.log2(size_raw / 1000.0)
             else:
@@ -317,9 +321,9 @@ class SettingsTab(QWidget):
         """Map the size-type combo's display text to the internal key
         used by data_prep.build_arrays."""
         text = self.size_type_combo.currentText()
-        if text.startswith("\u03a6"):
+        if text.startswith("Φ"):
             return "phi"
-        return text  # "mm" or "\u00b5m"
+        return text  # "mm" or "µm"
 
 
     def _on_browse_output(self):
@@ -350,7 +354,7 @@ class SettingsTab(QWidget):
             return
         if not size_col:
             QMessageBox.warning(self, "Grain size column required",
-                                 "All models need a grain size column (\u03a6, mm, or \u00b5m).")
+                                 "All models need a grain size column (Φ, mm, or µm).")
             return
         if weight_col is None:
             QMessageBox.warning(self, "Weight column required",
