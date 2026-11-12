@@ -237,7 +237,7 @@ class PlotTab(QWidget):
             if it.density_clicks:
                 clicks = np.array(it.density_clicks)
                 ax.plot(clicks[:, 0], clicks[:, 1], 'x', color='black', markersize=10,
-                        markeredgewidth=2, zorder=5, label="Guessed Peak Locations")
+                        markeredgewidth=2, zorder=5, label="Clicked peak positions")
             ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0),
                       borderaxespad=0.0)
 
@@ -318,7 +318,7 @@ class PlotTab(QWidget):
     def _render_power_law_panel(self, ax, it, results):
         result = results.get("bi_power_law")
         ax.set_xlabel(r'Grain size ($\phi$)')
-        ax.set_ylabel(r'$N(\geq\phi)/N_0$')
+        ax.set_ylabel(r'$N(\leq\phi)/N_0$')
         ax.set_title('Bi-power-law', fontsize=10, fontweight='bold', pad=32)
         phi = it.arrays["phi"]
         ax.set_xlim(phi.min() - 4, phi.max() + 4)
@@ -348,12 +348,12 @@ class PlotTab(QWidget):
                 D_str = f"$D_f$ = {D_f:.3f}, $D_c$={D_c:.3f}"
                 ax.plot([], [], ' ', label=D_str)
 
-            
+
             cd = results.get("cd_bi_power",None)
             if cd is not None:
                 ax.semilogy(cd["cumulative_data"]["phi"], cd["cumulative_data"]["N_cum"], 'ob', markersize=5,
                             label='Constant Density Data', zorder=4)
-                ax.semilogy(cd["phi_smooth"], cd["y_total"],'-', color='blue', lw=2,  
+                ax.semilogy(cd["phi_smooth"], cd["y_total"],'-', color='blue', lw=2,
                             label="Constant Density Fit")
             ax.legend(fontsize=7, loc='lower left', framealpha=0.85)
         else:
@@ -375,9 +375,9 @@ class PlotTab(QWidget):
                     markersize=5, label='Data (empirical)', zorder=5)
             fit_label = (
                 "Bi-Rosin-Rammler (fitted cumulative)\n"
-                f"$\\sigma_c$={params.get('sigma_coarse_mm', float('nan')):.3g} mm, "
+                f"$d'_c$={params.get('sigma_coarse_mm', float('nan')):.3g} mm, "
                 f"$k_c$={params.get('k_coarse', float('nan')):.2f}\n"
-                f"$\\sigma_f$={params.get('sigma_fine_mm', float('nan')):.3g} mm, "
+                f"$d'_f$={params.get('sigma_fine_mm', float('nan')):.3g} mm, "
                 f"$k_f$={params.get('k_fine', float('nan')):.2f}"
             )
             ax.plot(cum["phi_fit_sorted"], cum["M_gt_l_fit"], '-', color='crimson',
