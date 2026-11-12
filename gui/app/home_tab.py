@@ -28,7 +28,7 @@ LOGO_FILES = [
 LOGO_MAX_HEIGHT = 56
 
 INSTRUCTIONS = """
-<h2>Particle Size Distribution Fitting Toolkit</h2>
+<h2>GSDFit: a toolkit for fitting bimodal grain-size distributions</h2>
 <p>This tool fits bimodal statistical models (Bi-Gaussian, Bi-Weibull,
 Bi-power-law, Bi-Rosin-Rammler) to Particle Size Distribution data.</p>
 <p><b>To get started:</b></p>
@@ -115,7 +115,6 @@ class HomeTab(QWidget):
 
 
 
-
         layout.addStretch()
         layout.addWidget(cite_label) 
         layout.addWidget(footer_divider)
@@ -156,7 +155,3 @@ class HomeTab(QWidget):
 
         self.status_label.setText(f"Selected: {selected_files}")
         self.file_selected.emit(selected_files)
-
-
-
-       
