@@ -6,7 +6,7 @@ Entry point. Run with:  python3 RUN_HERE.py
 from PyQt6.QtWidgets import QApplication
 
 from psdfit.gui.app.main_window import MainWindow
-
+import sys
 
 def main():
     app = QApplication(sys.argv)
