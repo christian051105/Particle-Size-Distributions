@@ -3,10 +3,6 @@ RUN_HERE.py
 =======
 Entry point. Run with:  python3 RUN_HERE.py
 """
-
-import sys
-from pathlib import Path
-
 from PyQt6.QtWidgets import QApplication
 
 from psdfit.gui.app.main_window import MainWindow
