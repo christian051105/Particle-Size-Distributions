@@ -10,11 +10,11 @@ click tabs manually.
 
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
-from gui.app.home_tab import HomeTab
-from gui.app.settings_tab import SettingsTab
-from gui.app.interactive_tab import InteractiveTab
-from gui.app.plot_tab import PlotTab
-from gui.app.export_tab import ExportTab
+from psdfit.gui.app.home_tab import HomeTab
+from psdfit.gui.app.settings_tab import SettingsTab
+from psdfit.gui.app.interactive_tab import InteractiveTab
+from psdfit.gui.app.plot_tab import PlotTab
+from psdfit.gui.app.export_tab import ExportTab
 
 
 class MainWindow(QMainWindow):

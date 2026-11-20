@@ -19,11 +19,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QAbstractItemView
 
-from gui.data_prep import (
+from psdfit.gui.data_prep import (
     preview_csv_lines, load_raw_table, build_arrays,
     detect_phi_bin_width, suggest_bin_width,
 )
-from gui.results_store import RESULTS_PATH
+from psdfit.gui.results_store import RESULTS_PATH
 
 import numpy as np
 

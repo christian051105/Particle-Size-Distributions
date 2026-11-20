@@ -11,9 +11,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-from models import bi_weibull, weibull_component, entropy_of_info
-from load_dataset import DatasetLoader
-from results_store import save_fit_result
+from psdfit.code.models import bi_weibull, weibull_component, entropy_of_info
+from psdfit.code.load_dataset import DatasetLoader
+from psdfit.code.results_store import save_fit_result
 
 matplotlib.use("TkAgg")
 

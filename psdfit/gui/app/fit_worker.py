@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit, OptimizeWarning
 import warnings
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from gui.models import (
+from psdfit.gui.models import (
     bi_gaussian, bi_weibull, weibull_component,
     bi_power_law, log_bi_power_law,
     bi_rr_density, rr_density_phi,

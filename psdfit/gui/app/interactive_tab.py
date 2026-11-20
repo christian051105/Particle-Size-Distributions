@@ -39,8 +39,8 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from gui.models import add_mm_twin_axis
-from gui.app.fit_worker import FitWorker, MODEL_LABELS
+from psdfit.gui.models import add_mm_twin_axis
+from psdfit.gui.app.fit_worker import FitWorker, MODEL_LABELS
 
 CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
                   '#f781bf', '#a65628', '#984ea3',

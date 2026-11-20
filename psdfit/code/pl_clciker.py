@@ -18,9 +18,9 @@ from scipy.optimize import curve_fit, OptimizeWarning
 from scipy.signal import find_peaks
 import warnings
 
-from models import bi_power_law, log_bi_power_law, entropy_of_info
-from load_dataset import DatasetLoader
-from results_store import save_fit_result
+from psdfit.code.models import bi_power_law, log_bi_power_law, entropy_of_info
+from psdfit.code.load_dataset import DatasetLoader
+from psdfit.code.results_store import save_fit_result
 
 matplotlib.use("TkAgg")
 np.seterr(over="ignore", divide="ignore", invalid="ignore")

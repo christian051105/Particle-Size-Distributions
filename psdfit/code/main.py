@@ -1,7 +1,7 @@
-from test import load
+from psdfit.code.test import load
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
 
 fname = "TGSD_HEL1980_02.csv"

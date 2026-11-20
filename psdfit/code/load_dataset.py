@@ -8,7 +8,7 @@ file selection, header confirmation, column mapping, and convention
 confirmation via terminal prompts, then returns clean numpy arrays.
 """
 
-from data_loading import (
+from psdfit.code.data_loading import (
     pick_csv_path,
     pick_header_row,
     load_raw_table,
