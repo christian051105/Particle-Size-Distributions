@@ -4,7 +4,6 @@ psdfit provides tools and a PyQt6 graphical interface for loading, fitting, and 
 
 ## Requirements
 
-- Linux
 - [Pixi](https://pixi.sh/), [Conda or Miniconda](https://docs.conda.io/), or Python (>=3.14.6) with `pip`
 - Git
 
