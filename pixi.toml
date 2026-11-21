@@ -1,7 +1,7 @@
 [workspace]
 authors = ["dunbara <a.dunbar@lancaster.ac.uk>"]
 channels = ["conda-forge"]
-name = "code"
+name = "psdfit"
 platforms = ["linux-64"]
 version = "0.1.0"
 
