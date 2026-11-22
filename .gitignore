@@ -6,5 +6,11 @@ pixi.lock
 # pycaches
 *.pyc
 **/__pycache__
+psd_fit.egg-info
+
+#distribution files
+dist/
+build/
+package-test/
 
 *.csv
