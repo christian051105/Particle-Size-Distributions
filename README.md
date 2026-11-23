@@ -125,3 +125,69 @@ Or launch the Python module directly:
 ```bash
 python -m psdfit
 ```
+## Building a Windows Distribution
+
+### Requirements
+
+The Windows build environment is provided by `psdfit-dev.yml` and contains:
+
+- Python >=3.14.6,<3.15
+- PyQt6 >=6.11.0,<7
+- pandas >=3.0.5,<4
+- SciPy >=1.18.0,<2
+- Matplotlib >=3.11.1,<4
+- NumPy >=2.5.1,<3
+- pip
+- PyInstaller
+- Make
+
+You will also need Conda or Miniconda/Miniforge and Git.
+
+### Create and activate the development environment
+
+From the repository root in a Windows terminal:
+
+```bash
+conda env create -f psdfit-dev.yml
+conda activate psdfit-dev
+python -m pip install -e .
+```
+
+If the environment already exists, update it instead:
+
+```bash
+conda env update -n psdfit-dev -f psdfit-dev.yml --prune
+conda activate psdfit-dev
+python -m pip install -e .
+```
+
+Verify the build tools and package dependencies:
+
+```bash
+python --version
+pyinstaller --version
+make --version
+python -c "import PyQt6, pandas, scipy, matplotlib, numpy; print('Build dependencies available')"
+```
+
+### Build the distribution
+
+With `psdfit-dev` activated, run this command from the repository root:
+
+```bash
+make build
+```
+
+The provided Makefile removes an existing `dist/psdfit` directory and uses `psdfit.spec` to build the application with PyInstaller.
+
+The distributable is written to:
+
+```text
+dist/psdfit/
+```
+
+To remove generated build files:
+
+```bash
+make clean
+```

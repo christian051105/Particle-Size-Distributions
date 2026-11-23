@@ -90,7 +90,7 @@ class HomeTab(QWidget):
                 # visible placeholder instead of silently vanishing --
                 # makes a missing/unreadable file obvious rather than
                 # looking identical to "everything's fine"
-                logo_label = QLabel(f"[{alt_text} logo not found]")
+                logo_label = QLabel(f"[{alt_text} ({ASSETS_DIR}) logo not found]")
                 logo_label.setStyleSheet("color: #b00020; font-size: 10px;")
             else:
                 any_logo_loaded = True
