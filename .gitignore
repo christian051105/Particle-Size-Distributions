@@ -7,10 +7,12 @@ pixi.lock
 *.pyc
 **/__pycache__
 psd_fit.egg-info
+.venv/ 
+*.spec.backup
 
 #distribution files
 dist/
 build/
-package-test/
+installer/
 
 *.csv
