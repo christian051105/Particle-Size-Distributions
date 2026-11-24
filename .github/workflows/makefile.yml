@@ -17,3 +17,12 @@ jobs:
       run: |
         ls ${{ github.workspace }}
         
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v4.1.0
+      with:
+          activate-environment: psdfit-dev
+          environment-file: psdfit-dev.yml
+          auto-activate: false
+    - run: |
+          conda info
+          conda list
