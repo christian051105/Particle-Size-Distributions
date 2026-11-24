@@ -41,3 +41,8 @@ jobs:
           make build
           ls ${{ github.workspace }}/dist/psdfit
           
+    - name: Compile .ISS to .EXE Installer
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      with:
+        path: psdfit.iss
+          
