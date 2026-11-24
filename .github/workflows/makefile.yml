@@ -52,14 +52,33 @@ jobs:
           throw "Build did not produce dist/psdfit/psdfit.exe"
         }
 
+    - name: Get release version
+      id: release-version
+      run: |
+        $tag = '${{ github.ref_name }}'
+        $version = $tag -replace '^v', ''
+        if (-not $version) {
+          throw "Unable to derive a release version from tag '$tag'"
+        }
+        "version=$version" >> $env:GITHUB_OUTPUT
+        "installer=dist/PSDFit-$version-Setup.exe" >> $env:GITHUB_OUTPUT
+
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
       with:
         path: psdfit.iss
+        options: /DMyAppVersion=${{ steps.release-version.outputs.version }}
+
+    - name: Verify installer
+      run: |
+        $installer = '${{ steps.release-version.outputs.installer }}'
+        if (-not (Test-Path $installer)) {
+          throw "Installer was not created at $installer"
+        }
 
     - name: Publish installer to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
-        files: dist/PSDFit-0.1.0-Setup.exe
+        files: ${{ steps.release-version.outputs.installer }}
         generate_release_notes: true

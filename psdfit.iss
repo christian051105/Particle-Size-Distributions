@@ -2,7 +2,9 @@
 ; Build the application first with: pyinstaller psdfit.spec
 
 #define MyAppName "PSDFit"
-#define MyAppVersion "0.1.0"
+#ifndef MyAppVersion
+  #define MyAppVersion "0.1.0"
+#endif
 #define MyAppPublisher "Lancaster University"
 #define MyAppExeName "psdfit.exe"
 
