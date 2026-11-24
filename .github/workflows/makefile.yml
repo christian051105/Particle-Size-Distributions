@@ -36,13 +36,22 @@ jobs:
       run: |
         python -c "import sys; print(sys.executable)"
         python -c "import PyQt6; print(PyQt6.__file__)"
+        
     - name: build-dist
       run: |
           make build
           ls ${{ github.workspace }}/dist/psdfit
           
+    - name: Verify build
+      run: Test-Path "${{ github.workspace }}/dist/psdfit/psdfit.exe"
+
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
       with:
         path: psdfit.iss
-          
+
+    - name: Upload installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: PSDFit-installer
+        path: dist/PSDFit-0.1.0-Setup.exe
