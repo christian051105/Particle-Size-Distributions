@@ -43,7 +43,10 @@ jobs:
           ls ${{ github.workspace }}/dist/psdfit
           
     - name: Verify build
-      run: Test-Path "${{ github.workspace }}/dist/psdfit/psdfit.exe"
+      run: |
+        if (-not (Test-Path "${{ github.workspace }}/dist/psdfit/psdfit.exe")) {
+          throw "Build did not produce dist/psdfit/psdfit.exe"
+        }
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
