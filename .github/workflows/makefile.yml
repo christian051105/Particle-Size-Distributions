@@ -35,4 +35,9 @@ jobs:
     - name: test-conda
       run: |
         python -c "import sys; print(sys.executable)"
-        python -c "import PyQt6; print(PyQt6.__file__); print(PyQt6.QtCore.PYQT_VERSION_STR)"
+        python -c "import PyQt6; print(PyQt6.__file__)"
+    - name: build-dist
+      run: |
+          make build
+          ls ${{ github.workspace }}/dist/psdfit
+          
