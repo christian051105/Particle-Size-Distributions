@@ -25,7 +25,9 @@ jobs:
           auto-activate: true
     - run: |
           conda info
-          conda list
+          conda env list
+          conda activate psdfit-dev
+          
     - name: test-conda
       run: |
         python -c "import sys; print(sys.executable)"
