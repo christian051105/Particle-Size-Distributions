@@ -1,18 +1,23 @@
-psdfit - Particle-Size Distribution Fitting
+# PSDFit
 
-psdfit provides tools and a PyQt6 graphical interface for loading, fitting, and exporting particle-size distribution data.
+**Particle-Size Distribution Fitting Tools**
 
-## Requirements
+PSDFit provides fitting tools and a PyQt6 GUI for loading, fitting, and exporting particle-size distribution data.
 
-- [Pixi](https://pixi.sh/), [Conda or Miniconda](https://docs.conda.io/), or Python (>=3.14.6) with `pip`
-- Git
+## Download PSDFit for Windows
 
-## Choose an installation pathway
-The psdfit module can be installed using one of the following environment managers. We recommend using Pixi.
+> [!IMPORTANT]
+> **Windows users:** Download and run the pre-built installer—no Python or development environment is required.
+
+**[Download the latest Windows installer](https://github.com/christian051105/Particle-Size-Distributions/releases/latest)**
+
+## Development Installation on Windows, Linux, and macOS
+
+The source code can be installed as a Python package using one of the following environment managers. We recommend the use of Pixi.
 
 - **Pixi** — creates and activates the `psdfit` Pixi environment
 - **Conda** — creates and activates the `psdfit` Conda environment
-- **pip** — creates a Python virtual environment and installs the project module
+- **pip** — creates a Python virtual environment and installs the project package
 
 This repository includes `pixi.toml` for Pixi, `environment.yml` for Conda, and `requirements.txt` for pip.
 
@@ -28,7 +33,7 @@ cd Particle-Size-Distributions
 
 ### with Pixi 
 
-Install the Pixi environment and this project as an editable Python module:
+Install the Pixi environment and this project as an editable Python package:
 
 ```bash
 pixi run install
@@ -37,7 +42,7 @@ pixi run install
 
 ### with Conda
 
-Create the environment from `environment.yml`, activate it, and install this project as an editable Python module:
+Create the environment from `environment.yml`, activate it, and install this project as an editable Python package:
 
 ```bash
 conda env create -f environment.yml
@@ -48,14 +53,14 @@ python -m pip install -e .
 To update an existing Conda environment instead:
 
 ```bash
-conda env update -f environment.yml --prune
+conda env update -n psdfit -f environment.yml --prune
 conda activate psdfit
 python -m pip install -e .
 ```
 
 ### with pip
 
-Create and activate a Python virtual environment, install the dependencies, and install this project as an editable module:
+Create and activate a Python virtual environment, install the dependencies, and install this project as an editable package:
 
 ```bash
 python -m venv .venv
@@ -106,7 +111,7 @@ Then:
 psdfit-gui
 ```
 
-Or launch the Python module directly:
+Or launch the GUI directly:
 
 ```bash
 python -m psdfit
@@ -120,12 +125,14 @@ With the virtual environment activated:
 psdfit-gui
 ```
 
-Or launch the Python module directly:
+Or launch the GUI directly:
 
 ```bash
 python -m psdfit
 ```
+
 ## Building a Windows Distribution
+Windows installers are built automatically via github actions when a new version is released. They can also be built manually by following the instructions below. 
 
 ### Requirements
 
@@ -141,7 +148,7 @@ The Windows build environment is provided by `psdfit-dev.yml` and contains:
 - PyInstaller
 - Make
 
-You will also need Conda or Miniconda/Miniforge and Git.
+You will also need Conda or Miniconda/Miniforge, Git and [Inno Setup](https://jrsoftware.org/inno-setup).
 
 ### Create and activate the development environment
 
@@ -190,4 +197,26 @@ To remove generated build files:
 
 ```bash
 make clean
+```
+
+### Build the Windows installer
+
+After building `dist/psdfit`, install [Inno Setup](https://jrsoftware.org/isinfo.php). The installer script is `psdfit.iss`, and the resulting setup executable is written to `dist/`.
+
+To compile the installer with the fallback version defined in `psdfit.iss`, open a Command Prompt or PowerShell window in the repository root and run:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" psdfit.iss
+```
+
+To use a specific release version, pass it as `MyAppVersion`:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DMyAppVersion=1.2.3 psdfit.iss
+```
+
+For example, version `1.2.3` creates:
+
+```text
+dist/PSDFit-1.2.3-Setup.exe
 ```

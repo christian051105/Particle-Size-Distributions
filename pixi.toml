@@ -2,7 +2,6 @@
 authors = ["dunbara <a.dunbar@lancaster.ac.uk>"]
 channels = ["conda-forge"]
 name = "psdfit"
-platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
