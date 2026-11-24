@@ -1,0 +1,19 @@
+name: build exe
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: List files in the repository
+      run: |
+        ls ${{ github.workspace }}
+        
