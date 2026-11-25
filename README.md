@@ -91,7 +91,7 @@ pixi shell
 Then with the Pixi shell activated:
 
 ```bash
-psdfit-gui
+gsdfit-gui
 ```
 or 
 ```bash
