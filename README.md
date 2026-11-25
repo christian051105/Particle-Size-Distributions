@@ -129,6 +129,59 @@ Or launch the GUI directly:
 ```bash
 python -m gsdfit
 ```
+## Usage
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>1. Launch GSDFit.</strong><br><br>Start the application using the desktop launcher or the command-line instructions above. The home page provides the entry point for loading and fitting particle-size distribution data.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/home.png" alt="GSDFit home page" width="600" height="390"></td>
+  </tr>
+</table>
+
+<br>
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>2. Load the data.</strong><br><br>Use the home page to select one or more CSV files containing particle-size distribution measurements. Verify that all required datasets have been selected before continuing.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_home.png" alt="Selecting particle-size distribution data" width="600" height="390"></td>
+  </tr>
+</table>
+
+<br>
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>3. Confirm and configure the fit.</strong><br><br>After the data is confirmed, GSDFit opens the settings tab and displays a preview of the loaded values. Check that the columns and distributions were imported correctly, then choose the PDF and cumulative models to use during fitting.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_settings.png" alt="Settings tab and loaded data preview" width="600" height="390"></td>
+  </tr>
+</table>
+
+<br>
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>4. Identify the likely peaks.</strong><br><br>Use the interactive plot to inspect the particle-size distribution. Left-click to select each likely peak in the data. These selections provide starting values that help guide the fitting process.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_interactive_overlay.png" alt="Selecting peaks for fitting" width="600" height="390"></td>
+  </tr>
+</table>
+
+<br>
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>5. Review the fitted models.</strong><br><br>Once every peak has been selected, GSDFit begins fitting and displays the completed results. Use the <strong>Previous</strong> and <strong>Next</strong> buttons to inspect each fitted model and its parameters.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_results.png" alt="Fitted model results" width="600" height="390"></td>
+  </tr>
+</table>
+
+<br>
+
+<table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
+  <tr>
+    <td width="45%" valign="middle"><strong>6. Export the results.</strong><br><br>When the fits are satisfactory, open the data export tab. Export fitted parameter values to a CSV file and save the generated plots as PNG images for reporting or further analysis.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_export.png" alt="Data export tab" width="600" height="390"></td>
+  </tr>
+</table>
 
 ## Building a Windows Distribution
 Windows installers are built automatically via github actions when a new version is released. They can also be built manually by following the instructions below. 
