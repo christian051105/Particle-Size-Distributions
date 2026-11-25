@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
     QLineEdit, QFileDialog, QMessageBox, QListWidget, QAbstractItemView
 )
 
-from psdfit.gui.results_store import RESULTS_PATH
+from gsdfit.gui.results_store import RESULTS_PATH
 
 
 class ExportTab(QWidget):

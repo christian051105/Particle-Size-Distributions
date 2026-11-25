@@ -12,9 +12,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-from psdfit.code.models import bi_rr_density, rr_density_phi, entropy_of_info
-from psdfit.code.load_dataset import DatasetLoader
-from psdfit.code.results_store import save_fit_result
+from gsdfit.code.models import bi_rr_density, rr_density_phi, entropy_of_info
+from gsdfit.code.load_dataset import DatasetLoader
+from gsdfit.code.results_store import save_fit_result
 
 matplotlib.use("TkAgg")
 

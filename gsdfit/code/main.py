@@ -1,4 +1,4 @@
-from psdfit.code.test import load
+from gsdfit.code.test import load
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]

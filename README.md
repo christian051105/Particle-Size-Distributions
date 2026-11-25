@@ -1,22 +1,22 @@
-# PSDFit
+# GSDFit
 
-**Particle-Size Distribution Fitting Tools**
+**Grain-Size Distribution Fitting Tools**
 
-PSDFit provides fitting tools and a PyQt6 GUI for loading, fitting, and exporting particle-size distribution data.
+GSDFit provides fitting tools and a PyQt6 GUI for loading, fitting, and exporting grain-size distribution data.
 
-## Download PSDFit for Windows
+## Download GSDFit for Windows
 
 > [!IMPORTANT]
 > **Windows users:** Download and run the pre-built installer—no Python or development environment is required.
 
 **[Download the latest Windows installer](https://github.com/christian051105/Particle-Size-Distributions/releases/latest)**
 
-## Development Installation on Windows, Linux, and macOS
+## Installing GSDFit as a Python package on Windows, Linux, and macOS
 
-The source code can be installed as a Python package using one of the following environment managers. We recommend the use of Pixi.
+The source code can be installed as a Python package using the following environment managers. We recommend the use of Pixi.
 
-- **Pixi** — creates and activates the `psdfit` Pixi environment
-- **Conda** — creates and activates the `psdfit` Conda environment
+- **Pixi** — creates and activates the `gsdfit` Pixi environment
+- **Conda** — creates and activates the `gsdfit` Conda environment
 - **pip** — creates a Python virtual environment and installs the project package
 
 This repository includes `pixi.toml` for Pixi, `environment.yml` for Conda, and `requirements.txt` for pip.
@@ -46,15 +46,15 @@ Create the environment from `environment.yml`, activate it, and install this pro
 
 ```bash
 conda env create -f environment.yml
-conda activate psdfit
+conda activate gsdfit
 python -m pip install -e .
 ```
 
 To update an existing Conda environment instead:
 
 ```bash
-conda env update -n psdfit -f environment.yml --prune
-conda activate psdfit
+conda env update -n gsdfit -f environment.yml --prune
+conda activate gsdfit
 python -m pip install -e .
 ```
 
@@ -87,9 +87,8 @@ Then with the Pixi shell activated:
 psdfit-gui
 ```
 or 
-
 ```bash
-python -m psdfit
+python -m gsdfit
 ```
 
 Or without activating the shell:
@@ -104,17 +103,17 @@ pixi run gui
 Make sure the Conda environment is activated:
 
 ```bash
-conda activate psdfit
+conda activate gsdfit
 ```
 Then:
 ```bash
-psdfit-gui
+gsdfit-gui
 ```
 
 Or launch the GUI directly:
 
 ```bash
-python -m psdfit
+python -m gsdfit
 ```
 
 ### pip
@@ -122,13 +121,13 @@ python -m psdfit
 With the virtual environment activated:
 
 ```bash
-psdfit-gui
+gsdfit-gui
 ```
 
 Or launch the GUI directly:
 
 ```bash
-python -m psdfit
+python -m gsdfit
 ```
 
 ## Building a Windows Distribution
@@ -136,7 +135,7 @@ Windows installers are built automatically via github actions when a new version
 
 ### Requirements
 
-The Windows build environment is provided by `psdfit-dev.yml` and contains:
+The Windows build environment is provided by `gsdfit-dev.yml` and contains:
 
 - Python >=3.14.6,<3.15
 - PyQt6 >=6.11.0,<7
@@ -155,16 +154,16 @@ You will also need Conda or Miniconda/Miniforge, Git and [Inno Setup](https://jr
 From the repository root in a Windows terminal:
 
 ```bash
-conda env create -f psdfit-dev.yml
-conda activate psdfit-dev
+conda env create -f gsdfit-dev.yml
+conda activate gsdfit-dev
 python -m pip install -e .
 ```
 
 If the environment already exists, update it instead:
 
 ```bash
-conda env update -n psdfit-dev -f psdfit-dev.yml --prune
-conda activate psdfit-dev
+conda env update -n gsdfit-dev -f gsdfit-dev.yml --prune
+conda activate gsdfit-dev
 python -m pip install -e .
 ```
 
@@ -179,18 +178,18 @@ python -c "import PyQt6, pandas, scipy, matplotlib, numpy; print('Build dependen
 
 ### Build the distribution
 
-With `psdfit-dev` activated, run this command from the repository root:
+With `gsdfit-dev` activated, run this command from the repository root:
 
 ```bash
 make build
 ```
 
-The provided Makefile removes an existing `dist/psdfit` directory and uses `psdfit.spec` to build the application with PyInstaller.
+The provided Makefile removes an existing `dist/gsdfit` directory and uses `gsdfit.spec` to build the application with PyInstaller.
 
 The distributable is written to:
 
 ```text
-dist/psdfit/
+dist/gsdfit/
 ```
 
 To remove generated build files:
@@ -201,22 +200,22 @@ make clean
 
 ### Build the Windows installer
 
-After building `dist/psdfit`, install [Inno Setup](https://jrsoftware.org/isinfo.php). The installer script is `psdfit.iss`, and the resulting setup executable is written to `dist/`.
+After building `dist/gsdfit`, install [Inno Setup](https://jrsoftware.org/isinfo.php). The installer script is `gsdfit.iss`, and the resulting setup executable is written to `dist/`.
 
-To compile the installer with the fallback version defined in `psdfit.iss`, open a Command Prompt or PowerShell window in the repository root and run:
+To compile the installer with the fallback version defined in `gsdfit.iss`, open a Command Prompt or PowerShell window in the repository root and run:
 
 ```powershell
-& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" psdfit.iss
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" gsdfit.iss
 ```
 
 To use a specific release version, pass it as `MyAppVersion`:
 
 ```powershell
-& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DMyAppVersion=1.2.3 psdfit.iss
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DMyAppVersion=1.2.3 gsdfit.iss
 ```
 
 For example, version `1.2.3` creates:
 
 ```text
-dist/PSDFit-1.2.3-Setup.exe
+dist/GSDFit-1.2.3-Setup.exe
 ```

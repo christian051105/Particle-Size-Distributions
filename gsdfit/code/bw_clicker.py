@@ -11,9 +11,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-from psdfit.code.models import bi_weibull, weibull_component, entropy_of_info
-from psdfit.code.load_dataset import DatasetLoader
-from psdfit.code.results_store import save_fit_result
+from gsdfit.code.models import bi_weibull, weibull_component, entropy_of_info
+from gsdfit.code.load_dataset import DatasetLoader
+from gsdfit.code.results_store import save_fit_result
 
 matplotlib.use("TkAgg")
 
@@ -38,7 +38,7 @@ def main():
            edgecolor='grey', linewidth=0.5, label='Data')
     ax.set_xlabel('Φ', fontsize=11)
     ax.set_ylabel('Mass (wt.%)', fontsize=11)
-    ax.set_title("Click the peak of each mode (2 clicks), order doesn't matter")
+    ax.set_title("Click the peak of each mode (2 clicks total), order doesn't matter")
     ax.set_xlim(phi_labels.min() - 1, phi_labels.max() + 1)
     ax.set_ylim(bottom=0)
     ax.grid(alpha=0.3)

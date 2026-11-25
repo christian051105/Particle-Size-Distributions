@@ -1,4 +1,4 @@
-name: psdfit
+name: gsdfit
 channels:
   - conda-forge
 dependencies:

@@ -42,9 +42,9 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from psdfit.gui.models import entropy_of_info, add_mm_twin_axis
-from psdfit.gui.results_store import save_fit_result
-from psdfit.gui.app.fit_worker import MODEL_LABELS
+from gsdfit.gui.models import entropy_of_info, add_mm_twin_axis
+from gsdfit.gui.results_store import save_fit_result
+from gsdfit.gui.app.fit_worker import MODEL_LABELS
 
 
 class PlotTab(QWidget):

@@ -29,8 +29,8 @@ jobs:
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v4.1.0
       with:
-          activate-environment: psdfit-dev
-          environment-file: psdfit-dev.yml
+          activate-environment: gsdfit-dev
+          environment-file: gsdfit-dev.yml
           auto-activate: true
     - run: |
           conda info
@@ -44,12 +44,12 @@ jobs:
     - name: build-dist
       run: |
           make build
-          ls ${{ github.workspace }}/dist/psdfit
+          ls ${{ github.workspace }}/dist/gsdfit
           
     - name: Verify build
       run: |
-        if (-not (Test-Path "${{ github.workspace }}/dist/psdfit/psdfit.exe")) {
-          throw "Build did not produce dist/psdfit/psdfit.exe"
+        if (-not (Test-Path "${{ github.workspace }}/dist/gsdfit/gsdfit.exe")) {
+          throw "Build did not produce dist/gsdfit/gsdfit.exe"
         }
 
     - name: Get release version
@@ -64,12 +64,12 @@ jobs:
     
         $version = $Matches.version
         "version=$version" >> $env:GITHUB_OUTPUT
-        "installer=dist/PSDFit-$version-Setup.exe" >> $env:GITHUB_OUTPUT
+        "installer=dist/GSDFit-$version-Setup.exe" >> $env:GITHUB_OUTPUT
 
     - name: Compile .ISS to .EXE Installer
       uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
       with:
-        path: psdfit.iss
+        path: gsdfit.iss
         options: /DMyAppVersion=${{ steps.release-version.outputs.version }}
 
     - name: Verify installer

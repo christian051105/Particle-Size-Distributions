@@ -1,12 +1,12 @@
-; Inno Setup installer for PSDFit
-; Build the application first with: pyinstaller psdfit.spec
+; Inno Setup installer for GSDFit
+; Build the application first with: pyinstaller gsdfit.spec
 
-#define MyAppName "PSDFit"
+#define MyAppName "GSDFit"
 #ifndef MyAppVersion
   #define MyAppVersion "0.1.0"
 #endif
 #define MyAppPublisher "Lancaster University"
-#define MyAppExeName "psdfit.exe"
+#define MyAppExeName "gsdfit.exe"
 
 [Setup]
 AppId={{B7C1A4D9-52F8-4E68-9D33-7F6B1A20C5E1}
@@ -18,7 +18,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=dist
-OutputBaseFilename=PSDFit-{#MyAppVersion}-Setup
+OutputBaseFilename=GSDFit-{#MyAppVersion}-Setup
 SetupIconFile=
 Compression=lzma2
 SolidCompression=yes
@@ -35,7 +35,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:";
 
 [Files]
-Source: "dist\psdfit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\gsdfit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

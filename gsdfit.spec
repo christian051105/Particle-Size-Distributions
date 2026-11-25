@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['psdfit/__main__.py'],
+    ['gsdfit/__main__.py'],
     pathex=[],
     binaries=[],
-    datas=[('psdfit/gui/app/logos','psdfit/gui/app/logos')],
+    datas=[('gsdfit/gui/app/logos','gsdfit/gui/app/logos')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -21,7 +21,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='psdfit',
+    name='gsdfit',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -40,5 +40,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='psdfit',
+    name='gsdfit',
 )

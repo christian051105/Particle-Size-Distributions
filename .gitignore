@@ -6,7 +6,7 @@ pixi.lock
 # pycaches
 *.pyc
 **/__pycache__
-psd_fit.egg-info
+gsd_fit.egg-info
 .venv/ 
 *.spec.backup
 

@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "psd-fit"
+name = "gsd-fit"
 version = "0.1.0"
 description = "Fitting tools and PyQt6 GUI for particle-size distribution data"
 authors = [
@@ -19,8 +19,8 @@ dependencies = [
 ]
 
 [project.scripts]
-psdfit-gui = "psdfit.gui.RUN_HERE:main"
+gsdfit-gui = "gsdfit.gui.RUN_HERE:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["psdfit*"]
+include = ["gsdfit*"]

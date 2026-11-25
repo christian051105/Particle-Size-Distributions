@@ -3,10 +3,11 @@ RUN_HERE.py
 =======
 Entry point. Run with:  python3 RUN_HERE.py
 """
+import sys
 from PyQt6.QtWidgets import QApplication
 
-from psdfit.gui.app.main_window import MainWindow
-import sys
+from gsdfit.gui.app.main_window import MainWindow
+
 
 def main():
     app = QApplication(sys.argv)
