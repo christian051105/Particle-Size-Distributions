@@ -2,7 +2,14 @@
 
 **Grain-Size Distribution Fitting Tools**
 
-GSDFit provides fitting tools and a PyQt6 GUI for loading, fitting, and exporting grain-size distribution data.
+GSDFit is a desktop application for fitting and comparing bimodal statistical models to Total Grain Size Distribution (TGSD) data from volcanic ash and other grain-size samples. It accepts weight percent versus phi grain-size data and fits four bimodal models:
+
+- **Bi-Gaussian**
+- **Bi-Weibull**
+- **Bi-Rosin-Rammler**
+- **Bi-power-law**
+
+The PyQt6 interface guides users through loading CSV files, confirming column mappings and bin width, selecting initial peak positions on the plot, reviewing fitted curves, and exporting parameters and figures.
 
 ## Download GSDFit for Windows
 
@@ -142,7 +149,7 @@ python -m gsdfit
 
 <table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
   <tr>
-    <td width="45%" valign="middle"><strong>2. Load the data.</strong><br><br>Use the home page to select one or more CSV files containing particle-size distribution measurements. Verify that all required datasets have been selected before continuing.</td>
+    <td width="45%" valign="middle"><strong>2. Load the data.</strong><br><br>Click <strong>Open CSV File...</strong> on the home page and select one or more grain-size distribution CSV files. A physical size column in millimetres or micrometres is only required when fitting the bi-power-law model.</td>
     <td width="55%" align="right" valign="middle"><img src="resources/images/app_home.png" alt="Selecting particle-size distribution data" width="600" height="390"></td>
   </tr>
 </table>
@@ -151,7 +158,7 @@ python -m gsdfit
 
 <table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
   <tr>
-    <td width="45%" valign="middle"><strong>3. Confirm and configure the fit.</strong><br><br>After the data is confirmed, GSDFit opens the settings tab and displays a preview of the loaded values. Check that the columns and distributions were imported correctly, then choose the PDF and cumulative models to use during fitting.</td>
+    <td width="45%" valign="middle"><strong>3. Confirm and configure the fit.</strong><br><br>On the settings tab, confirm the CSV header row and map the phi, size, and weight columns. Specify the size unit if supplied, or indicate that it is already in phi units. Confirm or adjust the phi bin width, choose one or more models, and select the destination for the results CSV.</td>
     <td width="55%" align="right" valign="middle"><img src="resources/images/app_settings.png" alt="Settings tab and loaded data preview" width="600" height="390"></td>
   </tr>
 </table>
@@ -160,8 +167,8 @@ python -m gsdfit
 
 <table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
   <tr>
-    <td width="45%" valign="middle"><strong>4. Identify the likely peaks.</strong><br><br>Use the interactive plot to inspect the particle-size distribution. Left-click to select each likely peak in the data. These selections provide starting values that help guide the fitting process.</td>
-    <td width="55%" align="right" valign="middle"><img src="resources/images/app_interactive_overlay.png" alt="Selecting peaks for fitting" width="600" height="390"></td>
+    <td width="45%" valign="middle"><strong>4. Add starting guesses.</strong><br><br>For density models, left-click once at the peak of each mode on the combined overlay page; the order does not matter. If bi-power-law is selected, complete its separate two-click phase on the cumulative number-distribution page. The plot pages navigate automatically, and <strong>Reset Clicks</strong> restarts the current selection.</td>
+    <td width="55%" align="right" valign="middle"><img src="resources/images/app_interactive_overlay.png" alt="Selecting peak locations for fitting" width="600" height="390"></td>
   </tr>
 </table>
 
@@ -169,7 +176,7 @@ python -m gsdfit
 
 <table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
   <tr>
-    <td width="45%" valign="middle"><strong>5. Review the fitted models.</strong><br><br>Once every peak has been selected, GSDFit begins fitting and displays the completed results. Use the <strong>Previous</strong> and <strong>Next</strong> buttons to inspect each fitted model and its parameters.</td>
+    <td width="45%" valign="middle"><strong>5. Review the fitted models.</strong><br><br>When fitting completes, GSDFit displays the generated curves page by page. Use the <strong>Previous</strong> and <strong>Next</strong> buttons to inspect each fitted model and its parameters. Every phi-based page also includes a secondary millimetre scale.</td>
     <td width="55%" align="right" valign="middle"><img src="resources/images/app_results.png" alt="Fitted model results" width="600" height="390"></td>
   </tr>
 </table>
@@ -178,10 +185,27 @@ python -m gsdfit
 
 <table width="100%" style="table-layout: fixed;" border="1" rules="cols" cellpadding="16">
   <tr>
-    <td width="45%" valign="middle"><strong>6. Export the results.</strong><br><br>When the fits are satisfactory, open the data export tab. Export fitted parameter values to a CSV file and save the generated plots as PNG images for reporting or further analysis.</td>
+    <td width="45%" valign="middle"><strong>6. Save and export the results.</strong><br><br>Use <strong>Save All Fits to Results File</strong> to store the current fitted parameters in the results CSV. From the data export tab, export fit results and selected or all generated plot pages as PNG images. Exported plot names include the dataset name, page number, and page title.</td>
     <td width="55%" align="right" valign="middle"><img src="resources/images/app_export.png" alt="Data export tab" width="600" height="390"></td>
   </tr>
 </table>
+
+## Data format
+
+CSVs should contain, at minimum:
+
+- A **phi** column containing grain-size bins on the phi/Φ scale.
+- A **weight or mass** column containing weight percent or raw mass. Raw mass values are normalized internally to sum to 100%.
+- An optional **size** column in millimetres, micrometres, or phi units. A size column is required only for the bi-power-law model.
+
+Fitted results are stored in a results CSV as stacked per-model blocks, rather than as one wide table, because each model uses a different parameter set.
+
+## Notes
+
+- Confirm the phi bin width on the settings tab. Entropy comparisons are only meaningful across datasets with the same bin spacing, or after accounting for differences in bin spacing.
+- Bin widths are commonly detected and snapped to values such as 0.25, 0.5, 1.0, or 2.0 Φ.
+- The phi values used internally represent bin centres, calculated as phi_edge - bin_width / 2. For a default bin width of 1.0 Φ, this subtracts 0.5.
+- Use **Reset Clicks** if a fitting starting guess needs to be selected again.
 
 ## Building a Windows Distribution
 Windows installers are built automatically via github actions when a new version is released. They can also be built manually by following the instructions below. 
@@ -272,3 +296,17 @@ For example, version `1.2.3` creates:
 ```text
 dist/GSDFit-1.2.3-Setup.exe
 ```
+
+## Acknowledgements
+
+Developed with support from Lancaster University, UKRI NERC, and ExaGeo.
+
+---
+
+<table width="100%" style="table-layout: fixed;">
+  <tr>
+    <td align="center" valign="middle"><img src="gsdfit/gui/app/logos/LancasterUniversitylogo.png" alt="Lancaster University" height="90"></td>
+    <td align="center" valign="middle"><img src="gsdfit/gui/app/logos/UKRI_NERC_RGB.png" alt="UKRI NERC" height="90"></td>
+    <td align="center" valign="middle"><img src="gsdfit/gui/app/logos/exageo-logo-main.png" alt="ExaGeo" height="90"></td>
+  </tr>
+</table>
