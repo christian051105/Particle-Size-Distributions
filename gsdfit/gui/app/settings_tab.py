@@ -14,9 +14,9 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
     QLabel, QListWidget, QComboBox, QSpinBox, QPushButton,
     QLineEdit, QFileDialog, QMessageBox, QDoubleSpinBox,
-    QCheckBox, QAbstractItemView, QTableWidget,QTableWidgetItem
+    QCheckBox, QAbstractItemView, QTableWidget,QTableWidgetItem, QScrollArea, QSizePolicy,
 )
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtWidgets import QAbstractItemView
 
 from gsdfit.gui.data_prep import (
@@ -55,6 +55,26 @@ class SettingsTab(QWidget):
         self.file_label.setStyleSheet("font-weight: bold;")
         layout.addWidget(self.file_label)
 
+        # --- options layout -----------------------------------------------
+        #Groups all options blocks together allowing scrolling in small windows
+        options_scroll = QScrollArea()
+        options_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        options_scroll.setWidgetResizable(True)
+
+        options_scroll.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+        options_scroll.setMinimumHeight(400)
+
+        options_container = QWidget()
+        options_container.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+
+        options_layout = QVBoxLayout(options_container)
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.setSpacing(14)
+
+
         # --- header row selection -------------------------------------
         header_box = QGroupBox("1. Confirm header row")
         header_layout = QVBoxLayout(header_box)
@@ -75,7 +95,7 @@ class SettingsTab(QWidget):
         header_row_row.addWidget(self.load_columns_button)
         header_row_row.addStretch()
         header_layout.addLayout(header_row_row)
-        layout.addWidget(header_box)
+        options_layout.addWidget(header_box)
 
         # --- column mapping ---------------------------------------------
         mapping_box = QGroupBox("2. Map columns")
@@ -97,7 +117,7 @@ class SettingsTab(QWidget):
 
         mapping_form.addRow("Density (kg m^-3; Constant or row header)", self.density_combo)
 
-        layout.addWidget(mapping_box)
+        options_layout.addWidget(mapping_box)
 
 
         # --- bin width ---------------------------------------------------
@@ -115,7 +135,7 @@ class SettingsTab(QWidget):
         self.bin_width_note.setStyleSheet("color: grey;")
         bin_layout.addWidget(self.bin_width_note)
         bin_layout.addStretch()
-        layout.addWidget(bin_box)
+        options_layout.addWidget(bin_box)
 
         # --- model + output ------------------------------------------------
         model_box = QGroupBox("4. Model(s) to fit and results file")
@@ -168,7 +188,11 @@ class SettingsTab(QWidget):
         output_container.setLayout(output_row)
         model_form.addRow("Save results to:", output_container)
         model_box_layout.addLayout(model_form)
-        layout.addWidget(model_box)
+        options_layout.addWidget(model_box)
+
+        #--- add options layout to main layout --------------------------------
+        options_scroll.setWidget(options_container)
+        layout.addWidget(options_scroll)
 
         # --- confirm -----------------------------------------------------
         self.confirm_button = QPushButton("Confirm and Continue to Plot \u2192")
@@ -176,7 +200,7 @@ class SettingsTab(QWidget):
         self.confirm_button.clicked.connect(self._on_confirm)
         layout.addWidget(self.confirm_button)
 
-        layout.addStretch()
+        #layout.addStretch()
         self._set_columns_enabled(False)
 
     # ---------------------------------------------------------------
