@@ -99,8 +99,13 @@ class PlotTab(QWidget):
 
         self.figure = Figure(figsize=self.FIGURE_SIZE_IN)
         self.canvas = FigureCanvasQTAgg(self.figure)
+        self.figure.set_facecolor("white")
         self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.canvas.setMinimumSize(200, 200)
+        self.canvas.setMinimumSize(300, 260)
+        self.canvas.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
         layout.addWidget(self.canvas, stretch=1)
 
         button_row = QHBoxLayout()
@@ -116,8 +121,13 @@ class PlotTab(QWidget):
 
         self.results_text = QTextEdit()
         self.results_text.setReadOnly(True)
-        self.results_text.setMaximumHeight(160)
-        layout.addWidget(self.results_text)
+        self.results_text.setMinimumHeight(36)
+        self.results_text.setMaximumHeight(100)
+        self.results_text.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        layout.addWidget(self.results_text, stretch=0)
 
     # ---------------------------------------------------------------
     def cont_button_to_export(self):
@@ -134,8 +144,23 @@ class PlotTab(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._sync_figure_size_to_canvas()
-        if self._panel_specs:
+        if self._panel_specs and self.canvas.width() >= 300 and self.canvas.height() >= 220:
+            self._apply_current_layout()
             self.canvas.draw_idle()
+
+    def _apply_current_layout(self):
+        if not self._panel_specs:
+            return
+
+        if self.canvas.width() < 300 or self.canvas.height() < 220:
+            return
+
+        self.figure.tight_layout(pad=1.0)
+
+        spec = self._panel_specs[self._page_index]
+        if spec["kind"] == "overlay":
+            # Reserve a fixed area for the overlay legend on the right.
+            self.figure.tight_layout(pad=1.0, rect=(0.0, 0.0, 0.95, 1.0))
 
     def _sync_figure_size_to_canvas(self):
         dpr = self.canvas.devicePixelRatioF()
@@ -240,8 +265,13 @@ class PlotTab(QWidget):
                 clicks = np.array(it.density_clicks)
                 ax.plot(clicks[:, 0], clicks[:, 1], 'x', color='black', markersize=10,
                         markeredgewidth=2, zorder=5, label="Clicked peak positions")
-            ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0),
-                      borderaxespad=0.0)
+            ax.legend(
+                fontsize=7,
+                loc="upper left",
+                bbox_to_anchor=(1.02, 1.0),
+                borderaxespad=0.0,
+                framealpha=0.85,
+            )
 
         elif kind == "density_single":
             key = spec["model_key"]
@@ -258,27 +288,13 @@ class PlotTab(QWidget):
         elif kind == "rr_cumulative":
             self._render_rr_cumulative(ax, it, it._results_by_model.get("bi_rr_cdf"))
 
-        legend = ax.get_legend()
-        is_outside_legend = (
-            kind == "overlay" and legend is not None
-            and legend._bbox_to_anchor is not None
-        )
-
-        if is_outside_legend:
-            self.figure.subplots_adjust(top=0.85, bottom=0.09, left=0.09, right=0.98)
-            self.canvas.draw()
-
-            renderer = self.canvas.get_renderer()
-            legend_bbox_px = legend.get_window_extent(renderer)
-            fig_w_px = self.figure.get_size_inches()[0] * self.figure.get_dpi()
-            legend_w_frac = legend_bbox_px.width / fig_w_px
-            right_margin = max(0.68, 1.0 - legend_w_frac - 0.04)
-            self.figure.subplots_adjust(right=right_margin)
-        else:
-            self.figure.subplots_adjust(top=0.85, bottom=0.09, left=0.09, right=0.97)
-
+        if self.canvas.width() >= 300 and self.canvas.height() >= 220:
+            if kind == "overlay":
+                # Reserve a modest fixed area for the outside-right legend.
+                self.figure.tight_layout(pad=1.0, rect=(0.0, 0.0, 0.95, 1.0))
+            else:
+                self.figure.tight_layout(pad=1.0)
         self.canvas.draw()
-        self.canvas.repaint()
 
         n = len(self._panel_specs)
         self.page_label.setText(f"Page {self._page_index + 1} / {n}  --  {self._page_title_for(spec)}")
@@ -292,7 +308,7 @@ class PlotTab(QWidget):
                edgecolor='grey', linewidth=0.5, label='Data')
         ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel('Mass (wt.%)')
-        ax.set_title(title, fontsize=10, fontweight='bold', pad=32)
+        ax.set_title(title, fontsize=10, fontweight='bold', pad=10)
         ax.set_xlim(phi.min() - 1, phi.max() + 1)
         ax.set_ylim(0, weight_pct.max() * 1.35)
         ax.grid(alpha=0.3)
@@ -314,14 +330,19 @@ class PlotTab(QWidget):
         twin = add_mm_twin_axis(ax)
 
         if not is_overlay:
-            ax.legend(fontsize=7, loc='upper left', framealpha=0.85)
+            ax.legend(
+                fontsize=7,
+                loc="upper right",
+                borderaxespad=0.5,
+                framealpha=0.85,
+            )
         return twin
 
     def _render_power_law_panel(self, ax, it, results):
         result = results.get("bi_power_law")
         ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel(r'$N(\leq\phi)/N_0$')
-        ax.set_title('Bi-power-law', fontsize=10, fontweight='bold', pad=32)
+        ax.set_title('Bi-power-law', fontsize=10, fontweight='bold', pad=10)
         phi = it.arrays["phi"]
         ax.set_xlim(phi.min() - 4, phi.max() + 4)
         ax.grid(alpha=0.3, which='both')
@@ -357,7 +378,13 @@ class PlotTab(QWidget):
                             label='Constant Density Data', zorder=4)
                 ax.semilogy(cd["phi_smooth"], cd["y_total"],'-', color='blue', lw=2,
                             label="Constant Density Fit")
-            ax.legend(fontsize=7, loc='lower left', framealpha=0.85)
+
+            ax.legend(
+                fontsize=7,
+                loc="upper right",
+                borderaxespad=0.5,
+                framealpha=0.85,
+            )
         else:
             ax.text(0.5, 0.5, "No fit yet.", ha='center', va='center',
                     transform=ax.transAxes, fontsize=9, color='grey')
@@ -368,7 +395,7 @@ class PlotTab(QWidget):
     def _render_rr_cumulative(self, ax, it, result):
         ax.set_xlabel(r'Grain size ($\phi$)')
         ax.set_ylabel(r'$M(>l)/M_T$')
-        ax.set_title('Bi-Rosin-Rammler (Cumulative)', fontsize=10, fontweight='bold', pad=32)
+        ax.set_title('Bi-Rosin-Rammler (Cumulative)', fontsize=10, fontweight='bold', pad=10)
         ax.grid(alpha=0.3, which='both')
         if result is not None and "rr_cumulative" in result:
             cum = result["rr_cumulative"]
@@ -384,7 +411,12 @@ class PlotTab(QWidget):
             )
             ax.plot(cum["phi_fit_sorted"], cum["M_gt_l_fit"], '-', color='crimson',
                     lw=2, label=fit_label)
-            ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
+            ax.legend(
+                fontsize=7,
+                loc="upper right",
+                borderaxespad=0.5,
+                framealpha=0.85,
+            )
         else:
             phi = it.arrays["phi"]
             weight_pct = it.arrays["weight_pct"]
@@ -395,7 +427,12 @@ class PlotTab(QWidget):
             M_gt_l_data = np.concatenate(([1.0], M_gt_l_data[:-1]))
             ax.plot(phi_sorted, M_gt_l_data, 'o', color='k',
                     markersize=5, label='Data (empirical)', zorder=5)
-            ax.legend(fontsize=7, loc='upper right', framealpha=0.85)
+            ax.legend(
+                fontsize=7,
+                loc="upper right",
+                borderaxespad=0.5,
+                framealpha=0.85,
+            )
             ax.set_xlim(phi.min() - 1, phi.max() + 1)
         return add_mm_twin_axis(ax)
 

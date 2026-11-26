@@ -105,7 +105,7 @@ class InteractiveTab(QWidget):
         self.figure = Figure(figsize=self.FIGURE_SIZE_IN)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.canvas.setMinimumSize(200, 200)
+        self.canvas.setMinimumSize(300, 260)
         layout.addWidget(self.canvas, stretch=1)
 
         button_row = QHBoxLayout()
@@ -117,8 +117,13 @@ class InteractiveTab(QWidget):
 
         self.results_text = QTextEdit()
         self.results_text.setReadOnly(True)
-        self.results_text.setMaximumHeight(140)
-        layout.addWidget(self.results_text)
+        self.results_text.setMinimumHeight(36)
+        self.results_text.setMaximumHeight(100)
+        self.results_text.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        layout.addWidget(self.results_text, stretch=0)
 
     # ---------------------------------------------------------------
     def resizeEvent(self, event):
