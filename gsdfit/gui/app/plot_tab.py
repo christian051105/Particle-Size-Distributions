@@ -78,9 +78,11 @@ class PlotTab(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         header = QLabel("<h3>Results</h3>")
-        layout.addWidget(header)
 
         nav_row = QHBoxLayout()
+        nav_row.addWidget(header)
+        nav_row.addSpacing(12)
+
         self.prev_button = QPushButton("← Previous")
         self.prev_button.clicked.connect(self._go_prev)
         nav_row.addWidget(self.prev_button)
