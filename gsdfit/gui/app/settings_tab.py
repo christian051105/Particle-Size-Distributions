@@ -58,6 +58,14 @@ class SettingsTab(QWidget):
         # --- options layout -----------------------------------------------
         #Groups all options blocks together allowing scrolling in small windows
         options_scroll = QScrollArea()
+        options_scroll.setObjectName("options_scroll")
+
+        options_scroll.setStyleSheet("""
+            QScrollArea#options_scroll,
+            QScrollArea#options_scroll > QWidget {
+                background: transparent;
+            }
+        """)
         options_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         options_scroll.setWidgetResizable(True)
 
@@ -68,7 +76,17 @@ class SettingsTab(QWidget):
         options_scroll.setMinimumHeight(400)
 
         options_container = QWidget()
-        options_container.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        options_container.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+        options_container.setObjectName("options_container")
+        options_container.setStyleSheet("""
+            QWidget#options_container {
+                background: transparent;
+                border: none;
+            }
+        """)
 
         options_layout = QVBoxLayout(options_container)
         options_layout.setContentsMargins(0, 0, 0, 0)
@@ -78,9 +96,17 @@ class SettingsTab(QWidget):
         # --- header row selection -------------------------------------
         header_box = QGroupBox("1. Confirm header row")
         header_layout = QVBoxLayout(header_box)
-        header_layout.addWidget(QLabel("The row containing your column headers is detected automatically. Check the selection before pressing \"Confirm\". To select a different row as your column headers change the index in the header row index box and press confirm."))
+        header_label = QLabel("The row containing your column headers is detected automatically. Check the selection before pressing \"Confirm\". To select a different row as your column headers change the index in the header row index box and press confirm.")
+        header_label.setWordWrap(True)
+        header_layout.addWidget(header_label)
+        
         self.preview_list = QTableWidget()
-        self.preview_list.setMaximumHeight(160)
+        self.preview_list.setMaximumWidth(1100)
+        self.preview_list.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        #self.preview_list.setMaximumHeight(160)
         self.preview_list.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.preview_list.cellDoubleClicked.connect(self._on_preview_row_clicked)
         header_layout.addWidget(self.preview_list)
@@ -99,15 +125,31 @@ class SettingsTab(QWidget):
 
         # --- column mapping ---------------------------------------------
         mapping_box = QGroupBox("2. Map columns")
+        mapping_box.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
         mapping_form = QFormLayout(mapping_box)
+        mapping_form.setFieldGrowthPolicy(
+            QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow
+        )
+
         self.size_combo = QComboBox()
         self.weight_combo = QComboBox()
         self.density_combo = QComboBox()
+        self.size_type_combo = QComboBox()
+        
+        for combo in (self.size_combo, self.weight_combo, self.density_combo, self.size_type_combo):
+            combo.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Fixed,
+            )
+
         self.density_combo.addItems(["Constant"])
         self.size_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
         mapping_form.addRow("Particle size column:", self.size_combo)
  
-        self.size_type_combo = QComboBox()
+        
         self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
         self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
 
