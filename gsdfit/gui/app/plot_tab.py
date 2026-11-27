@@ -43,7 +43,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from gsdfit.gui.models import entropy_of_info, add_mm_twin_axis
-from gsdfit.gui.results_store import save_fit_result
+from gsdfit.code.results_store import save_fit_result
 from gsdfit.gui.app.fit_worker import MODEL_LABELS
 
 
@@ -109,9 +109,9 @@ class PlotTab(QWidget):
         layout.addWidget(self.canvas, stretch=1)
 
         button_row = QHBoxLayout()
-        self.save_button = QPushButton("Save All Fits to Results File")
-        self.save_button.clicked.connect(self._on_save)
-        button_row.addWidget(self.save_button)
+        #self.save_button = QPushButton("Save All Fits to Results File")
+        #self.save_button.clicked.connect(self._on_save)
+        #button_row.addWidget(self.save_button)
         button_row.addStretch()
 
         self.continue_button = QPushButton("Fit next file →")
@@ -459,6 +459,7 @@ class PlotTab(QWidget):
         msg = ""
         if saved:
             msg += f"Saved: {', '.join(saved)}\n\nFile: {it.output_path}"
+            print(msg)
         if failed:
             msg += "\n\nFailed to save:\n" + "\n".join(failed)
-        QMessageBox.information(self, "Save results", msg or "Nothing was saved.")
+            QMessageBox.information(self, "Save results", msg or "Nothing was saved.")

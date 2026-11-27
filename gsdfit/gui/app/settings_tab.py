@@ -23,7 +23,7 @@ from gsdfit.gui.data_prep import (
     preview_csv_lines, load_raw_table, build_arrays,
     detect_phi_bin_width, suggest_bin_width,
 )
-from gsdfit.gui.results_store import RESULTS_PATH
+from gsdfit.code.results_store import RESULTS_PATH
 
 import numpy as np
 
@@ -99,7 +99,7 @@ class SettingsTab(QWidget):
         header_label = QLabel("The row containing your column headers is detected automatically. Check the selection before pressing \"Confirm\". To select a different row as your column headers change the index in the header row index box and press confirm.")
         header_label.setWordWrap(True)
         header_layout.addWidget(header_label)
-        
+
         self.preview_list = QTableWidget()
         self.preview_list.setMaximumWidth(1100)
         self.preview_list.setSizePolicy(
@@ -138,7 +138,7 @@ class SettingsTab(QWidget):
         self.weight_combo = QComboBox()
         self.density_combo = QComboBox()
         self.size_type_combo = QComboBox()
-        
+
         for combo in (self.size_combo, self.weight_combo, self.density_combo, self.size_type_combo):
             combo.setSizePolicy(
                 QSizePolicy.Policy.Expanding,
@@ -148,13 +148,12 @@ class SettingsTab(QWidget):
         self.density_combo.addItems(["Constant"])
         self.size_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
         mapping_form.addRow("Particle size column:", self.size_combo)
- 
-        
+
         self.size_type_combo.addItems(["\u03a6 (phi)", "mm", "\u00b5m"])
         self.size_type_combo.currentIndexChanged.connect(self._try_suggest_bin_width)
 
         mapping_form.addRow("Particle size column is in:", self.size_type_combo)
- 
+
         mapping_form.addRow("Weight / mass column:", self.weight_combo)
 
         mapping_form.addRow("Density (kg m^-3; Constant or row header)", self.density_combo)
@@ -182,10 +181,13 @@ class SettingsTab(QWidget):
         # --- model + output ------------------------------------------------
         model_box = QGroupBox("4. Model(s) to fit and results file")
         model_box_layout = QVBoxLayout(model_box)
-        model_box_layout.addWidget(QLabel(
+        model_instruction = QLabel(
             "Select one or more models. All selected models are fit from "
             "the same two peak clicks on the next tab."
-        ))
+        )
+        model_instruction.setWordWrap(True)
+        model_box_layout.addWidget(model_instruction)
+
         self.model_checkboxes = {}
 
         CDF_MODEL_KEYS = {"bi_power_law", "bi_rr_cdf"}
@@ -221,14 +223,26 @@ class SettingsTab(QWidget):
 
         model_form = QFormLayout()
         output_row = QHBoxLayout()
-        self.output_path_edit = QLineEdit(RESULTS_PATH)
+        self.output_path_edit = QLineEdit()
+
+        self._output_path_native_palette = self.output_path_edit.palette()
+
+        output_path_default_palette = self.output_path_edit.palette()
+        output_path_default_palette.setColor(
+            output_path_default_palette.ColorRole.Base,
+            self.palette().color(self.palette().ColorRole.Window),
+        )
+        self.output_path_edit.setPalette(output_path_default_palette)
         output_row.addWidget(self.output_path_edit)
         browse_button = QPushButton("Browse...")
         browse_button.clicked.connect(self._on_browse_output)
         output_row.addWidget(browse_button)
         output_container = QWidget()
         output_container.setLayout(output_row)
-        model_form.addRow("Save results to:", output_container)
+        output_label = QLabel("Automatically append results to a new or existing output file.")
+        output_label.setMaximumWidth(400)
+        output_label.setWordWrap(True)
+        model_form.addRow(output_label, output_container)
         model_box_layout.addLayout(model_form)
         options_layout.addWidget(model_box)
 
@@ -252,7 +266,7 @@ class SettingsTab(QWidget):
             w.setEnabled(enabled)
         for cb in self.model_checkboxes.values():
             cb.setEnabled(enabled)
- 
+
     def populate_table(self,lines):
         self.header_row_spin.setValue(self.header_row)
         header_row_array = lines[self.header_row].split(',')
@@ -293,7 +307,6 @@ class SettingsTab(QWidget):
                 break
         self.header_row = i
         self.nrows=nrows
-       
 
     def _on_preview_row_clicked(self, idx):
         self.header_row_spin.setValue(idx+self.header_row+1)
@@ -316,12 +329,11 @@ class SettingsTab(QWidget):
 
         cols = list(self.raw_df.columns)
 
-        
         if not cols:
             QMessageBox.warning(self, "No columns found",
                                  "That header row produced no columns. Try a different row.")
             return
-        
+
         if len(cols)<self.ncols:
             for i in range(self.ncols-len(cols)):
                 cols.append("")
@@ -344,14 +356,14 @@ class SettingsTab(QWidget):
                 guessed_phi_idx = i
             if guessed_size_idx is None and (any(tok in lc for tok in ("size", "diameter", "d_mm")) or lc.strip() == "mm"):
                 guessed_size_idx = i
- 
+
         if guessed_phi_idx is not None:
             self.size_combo.setCurrentIndex(guessed_phi_idx)
             self.size_type_combo.setCurrentText("\u03a6 (phi)")
         elif guessed_size_idx is not None:
             self.size_combo.setCurrentIndex(guessed_size_idx)
             self.size_type_combo.setCurrentText("mm")
- 
+
         self._set_columns_enabled(True)
         self._try_suggest_bin_width()
 
@@ -378,7 +390,7 @@ class SettingsTab(QWidget):
             self.suggest_bin_width_from_phi(phi_raw)
         except Exception:
             pass
-            
+
     def _current_size_type(self):
         """Map the size-type combo's display text to the internal key
         used by data_prep.build_arrays."""
@@ -390,11 +402,17 @@ class SettingsTab(QWidget):
 
     def _on_browse_output(self):
         path, _ = QFileDialog.getSaveFileName(
-            self, "Choose results CSV location", self.output_path_edit.text(),
-            "CSV files (*.csv)"
+            self,
+            "Choose or create a results CSV",
+            self.output_path_edit.text(),
+            "CSV files (*.csv)",
+            options=QFileDialog.Option.DontConfirmOverwrite,
         )
         if path:
+            if not path.lower().endswith(".csv"):
+                path += ".csv"
             self.output_path_edit.setText(path)
+            self.output_path_edit.setPalette(self._output_path_native_palette)
 
     def _selected_model_keys(self):
         return [key for key in self.model_checkboxes if self.model_checkboxes[key].isChecked()]
@@ -440,7 +458,6 @@ class SettingsTab(QWidget):
 
         dataset_label = os.path.basename(self.csv_path).rsplit(".", 1)[0]
         output_path = self.output_path_edit.text().strip() or RESULTS_PATH
-
         self.settings_confirmed.emit(dataset_label, arrays, model_keys, output_path)
 
     # called after load_columns, once we know phi values, to suggest a bin width

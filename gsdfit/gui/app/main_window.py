@@ -8,6 +8,8 @@ Interactive -> Results once all fits finish) rather than needing to
 click tabs manually.
 """
 
+import os
+
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
 from gsdfit.gui.app.home_tab import HomeTab
@@ -15,6 +17,7 @@ from gsdfit.gui.app.settings_tab import SettingsTab
 from gsdfit.gui.app.interactive_tab import InteractiveTab
 from gsdfit.gui.app.plot_tab import PlotTab
 from gsdfit.gui.app.export_tab import ExportTab
+from gsdfit.code.results_store import RESULTS_PATH
 
 
 class MainWindow(QMainWindow):
@@ -51,10 +54,9 @@ class MainWindow(QMainWindow):
         self._start_fit_process(self.fileIndex)
 
     def _start_fit_process(self,index):
-
         if index == self.nfiles-1:
             self.plot_tab.cont_button_to_export()
-        
+
         path = self.paths[index]
         self.settings_tab.load_file(path)
         self.tabs.setCurrentWidget(self.settings_tab)
@@ -66,12 +68,20 @@ class MainWindow(QMainWindow):
     def _on_fitting_complete(self):
         self.plot_tab.refresh()
         self.tabs.setCurrentWidget(self.plot_tab)
+        self.plot_tab._on_save() # Save the current fit results to the tmp CSV file
 
     def _on_next_fit(self):
         self.fileIndex += 1
         self._start_fit_process(self.fileIndex)
         self.tabs.setCurrentWidget(self.settings_tab)
 
-
     def _on_continue_to_export(self):
         self.tabs.setCurrentWidget(self.export_tab)
+
+    def closeEvent(self, event):
+        # Remove the temporary results CSV file on exit, if it exists
+        try:
+            os.remove(RESULTS_PATH)
+        except OSError:
+            pass  # Ignore if the file doesn't exist
+        super().closeEvent(event)
