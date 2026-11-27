@@ -267,8 +267,7 @@ class PlotTab(QWidget):
                         markeredgewidth=2, zorder=5, label="Clicked peak positions")
             ax.legend(
                 fontsize=7,
-                loc="upper left",
-                bbox_to_anchor=(1.02, 1.0),
+                loc="upper right",
                 borderaxespad=0.0,
                 framealpha=0.85,
             )
@@ -289,11 +288,7 @@ class PlotTab(QWidget):
             self._render_rr_cumulative(ax, it, it._results_by_model.get("bi_rr_cdf"))
 
         if self.canvas.width() >= 300 and self.canvas.height() >= 220:
-            if kind == "overlay":
-                # Reserve a modest fixed area for the outside-right legend.
-                self.figure.tight_layout(pad=1.0, rect=(0.0, 0.0, 0.95, 1.0))
-            else:
-                self.figure.tight_layout(pad=1.0)
+            self.figure.tight_layout(pad=1.0)
         self.canvas.draw()
 
         n = len(self._panel_specs)
